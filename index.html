@@ -6,62 +6,71 @@
     <title>Cosmic Cargo: Space Trucker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #05050a; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; }
         
         #gameCanvas { display: block; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
 
         /* --- GAME HUD --- */
         #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; flex-direction: column; justify-content: space-between; padding: 20px; }
-        .hud { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; backdrop-filter: blur(5px); width: fit-content; }
-        .hud h1 { font-size: 20px; color: #00ffcc; margin-bottom: 5px; }
+        .hud { background: rgba(0, 0, 0, 0.8); padding: 15px 25px; border-radius: 10px; border: 1px solid #00ffcc; backdrop-filter: blur(5px); display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: fit-content; box-shadow: 0 0 20px rgba(0,255,204,0.2); }
+        .hud h1 { font-size: 15px; color: #00ffcc; grid-column: 1 / -1; margin-bottom: -5px; text-transform: uppercase; letter-spacing: 1.5px; }
+        .hud-stat { font-size: 13px; font-weight: bold; letter-spacing: 0.5px; }
+        .hud-stat span { color: #00ffcc; }
+        
+        /* Level Alert Notification Banner */
+        #level-banner { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%) scale(0.5); background: rgba(0,0,0,0.9); border: 2px dashed #ff00ff; padding: 15px 45px; border-radius: 8px; font-size: 32px; font-weight: 900; color: #ff00ff; text-shadow: 0 0 15px #ff00ff; display: none; opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 15; pointer-events: none; text-align: center; }
+
         #mobile-touch-zones { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; display: flex; pointer-events: auto; touch-action: none; }
         .touch-btn { flex: 1; height: 100%; opacity: 0; -webkit-tap-highlight-color: transparent; }
 
         /* --- MAIN MENU INTERFACE --- */
-        #main-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 20; background: rgba(8, 8, 12, 0.92); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 25px 15px; pointer-events: auto; }
+        #main-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 20; background: rgba(5, 5, 8, 0.95); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 25px 15px; pointer-events: auto; }
         
         .menu-hero { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 500px; text-align: center; margin-bottom: 25px; flex-shrink: 0; }
-        
-        /* Secret Admin Trigger added to title styling */
-        .menu-title { font-size: 42px; color: #00ffcc; text-shadow: 0 0 20px #00ffcc; font-weight: 900; letter-spacing: 2px; margin-bottom: 5px; cursor: pointer; transition: color 0.3s; }
-        .menu-title:active { color: #ff00ff; }
+        .menu-title { font-size: 46px; color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,204,0.4); font-weight: 900; letter-spacing: 3px; margin-bottom: 5px; cursor: pointer; }
 
-        .play-btn { background: #00ffcc; color: #000; border: none; padding: 16px 70px; font-size: 26px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 0 25px rgba(0, 255, 204, 0.6); transition: transform 0.2s, background 0.2s; margin-bottom: 15px; width: 100%; max-width: 380px; letter-spacing: 1px; }
-        .play-btn:hover { transform: scale(1.04); background: #ffffff; box-shadow: 0 0 35px rgba(255, 255, 255, 0.8); }
-        .play-btn:active { transform: scale(0.96); }
+        .play-btn { background: #00ffcc; color: #000; border: none; padding: 16px 70px; font-size: 26px; font-weight: bold; border-radius: 35px; cursor: pointer; box-shadow: 0 0 25px rgba(0, 255, 204, 0.4); transition: transform 0.2s, background 0.2s; margin-bottom: 15px; width: 100%; max-width: 380px; letter-spacing: 1px; }
+        .play-btn:hover { transform: scale(1.03); background: #ffffff; box-shadow: 0 0 35px rgba(255, 255, 255, 0.8); }
 
-        .currency-display { background: #15151f; padding: 8px 20px; border-radius: 20px; border: 1px solid #333; font-weight: bold; font-size: 14px; display: flex; gap: 20px; }
+        .currency-display { background: #0f0f17; padding: 8px 25px; border-radius: 20px; border: 1px solid #222233; font-weight: bold; font-size: 14px; display: flex; gap: 25px; }
         .currency-display span { color: #ff00ff; }
         .currency-display span.premium { color: #ffd700; }
 
-        /* Layout Grid Dashboard */
-        .menu-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 950px; }
-        @media (min-width: 768px) { .menu-grid { display: grid; grid-template-columns: 1fr 1.6fr; } }
+        .menu-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 1100px; }
+        @media (min-width: 850px) { .menu-grid { display: grid; grid-template-columns: 1fr 1.8fr; } }
 
-        .panel { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; }
-        .panel h2 { font-size: 16px; color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; }
+        .panel { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; padding: 20px; }
+        .panel h2 { font-size: 14px; color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 8px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
 
-        .tutorial-text { font-size: 13px; color: #b5b5c0; line-height: 1.5; }
-        .key-hint { background: #252530; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #00ffcc; border: 1px solid #444; }
+        .tutorial-text { font-size: 13px; color: #9c9cb0; line-height: 1.6; }
+        .key-hint { background: #171724; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #00ffcc; border: 1px solid #33334d; }
 
-        /* 10-Skin Grid Matrix Layout */
-        .skin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 10px; }
-        .skin-card { background: #12121a; border: 1px solid #222; border-radius: 8px; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; min-height: 110px; transition: border 0.2s; }
-        .skin-card.active-border { border-color: #00ffcc; background: #161c20; }
-        .skin-name { font-size: 12px; font-weight: bold; margin-bottom: 8px; color: #eaeaea; }
+        /* Hangar Grid Customization Styling */
+        .skin-grid { display: flex; flex-direction: column; gap: 12px; }
+        .skin-card { background: #0a0a10; border: 1px solid #1a1a26; border-radius: 10px; padding: 15px; display: grid; grid-template-columns: 1fr; gap: 10px; align-items: center; transition: all 0.2s; }
+        @media (min-width: 480px) { .skin-card { grid-template-columns: 1.4fr 1.6fr 1.8fr; text-align: left; } }
+        .skin-card.active-border { border-color: #00ffcc; background: #10161c; box-shadow: 0 0 15px rgba(0,255,204,0.12); }
         
-        .skin-card button { width: 100%; padding: 6px 4px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; color: white; transition: background 0.15s; }
-        .skin-card button.equip { background: #00ffcc; color: black; }
-        .skin-card button.buy-gems { background: linear-gradient(135deg, #a020f0, #ff00ff); }
-        .skin-card button.buy-crystals { background: linear-gradient(135deg, #ffd700, #ff8c00); color: black; }
-        .skin-card button.equipped { background: #222; color: #555; cursor: default; }
+        .skin-info-block { display: flex; flex-direction: column; }
+        .skin-name { font-size: 14px; font-weight: bold; color: #fff; }
+        .skin-ability { font-size: 11px; color: #00ffcc; margin-top: 3px; font-style: italic; }
+        
+        .purchase-actions-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+        
+        .skin-card button { width: 100%; padding: 8px 5px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 11px; color: white; transition: all 0.15s; text-transform: uppercase; }
+        .skin-card button.equip { background: #00ffcc; color: black; grid-column: 1 / -1; }
+        .skin-card button.buy-gems { background: #6a1b9a; border: 1px solid #8e24aa; }
+        .skin-card button.buy-gems:hover { background: #8e24aa; }
+        .skin-card button.buy-crystals { background: #9a7d0a; border: 1px solid #d4ac0d; color: #fff; }
+        .skin-card button.buy-crystals:hover { background: #d4ac0d; color: #000; }
+        .skin-card button.equipped { background: #14141f; color: #47476b; cursor: default; border: 1px solid #242438; grid-column: 1 / -1; }
 
-        .store-item { margin-bottom: 12px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border-left: 3px solid #ffd700; }
+        .store-item { margin-bottom: 12px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 8px; border-left: 3px solid #ffd700; }
         .store-item h3 { font-size: 14px; margin-bottom: 2px; }
-        .store-item p { font-size: 11px; color: #8c8c9e; margin-bottom: 8px; }
+        .store-item p { font-size: 11px; color: #6c6c80; margin-bottom: 8px; }
 
         ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #151522; border-radius: 10px; }
         #main-menu::-webkit-scrollbar-thumb { background: #00ffcc; }
     </style>
 
@@ -71,10 +80,10 @@
 <body>
 
     <canvas id="gameCanvas"></canvas>
+    <div id="level-banner">SECTOR ADVANCEMENT</div>
 
     <div id="main-menu">
         <div class="menu-hero">
-            <!-- Admin Security Hook: Click title 5 times to execute control panel override -->
             <h1 class="menu-title" onclick="processAdminClickOverride()">COSMIC CARGO</h1>
             <button class="play-btn" onclick="startGame()">PLAY GAME</button>
             <div class="currency-display">
@@ -88,10 +97,10 @@
                 <div class="panel">
                     <h2>FLIGHT MANUAL</h2>
                     <p class="tutorial-text">
-                        Avoid floating space debris. Harvest purple gems to bank cargo payload.<br><br>
-                        <strong>PC Keyboard:</strong> <span class="key-hint">A</span> / <span class="key-hint">D</span> or Arrow Keys.<br>
-                        <strong>Mobile/Tablet:</strong> Tap left or right screen sides.<br><br>
-                        <span style="color:#888; font-size:11px;">* Hint: Core system developers can tap the main game title 5 times for direct authorization access.</span>
+                        Steer clear of space debris fields. Every 1,000m you warp into a tighter speed sector.<br><br>
+                        <strong>Keyboard Routing:</strong> <span class="key-hint">A</span> / <span class="key-hint">D</span> or Arrow Keys.<br>
+                        <strong>Mobile/Tablet:</strong> Tap left/right halves of your viewport screen.<br><br>
+                        <span style="color:#5c5c7a; font-size:11px;">* Security Interface: Click the main game title 5 times to bypass standard resource restrictions.</span>
                     </p>
                 </div>
 
@@ -99,19 +108,19 @@
                     <h2>BLACK MARKET SUPPLY</h2>
                     <div class="store-item">
                         <h3>1,000 Premium Crystals</h3>
-                        <p>Instantly secure premium matrix hull assets.</p>
+                        <p>Instantly deploy elite capital ship schematics.</p>
                         <div id="paypal-button-pack-1"></div>
                     </div>
                     <div class="store-item" style="border-left-color: #ff00ff;">
                         <h3>Support the Creator ($5)</h3>
-                        <p>Helps keep processing systems online.</p>
+                        <p>Keeps the deep space server architectures running smoothly.</p>
                         <div id="paypal-button-donate"></div>
                     </div>
                 </div>
             </div>
 
             <div class="panel">
-                <h2>FLEET SHIP HANGAR (10 CORVETTES AVAILABLE)</h2>
+                <h2>FLEET DEPLOYMENT GARAGE (DETAILED SHIP ASSEMBLIES)</h2>
                 <div class="skin-grid" id="skins-container"></div>
             </div>
         </div>
@@ -119,9 +128,11 @@
 
     <div id="game-ui">
         <div class="hud">
-            <h1>COSMIC CARGO</h1>
-            <div>Distance: <span id="scoreVal">0</span>m</div>
-            <div>Run Cargo: <span id="gemsVal">0</span> Gems</div>
+            <h1>SYSTEM METRICS</h2>
+            <div class="hud-stat">Sector: <span id="hud-level">1</span></div>
+            <div class="hud-stat">Distance: <span id="scoreVal">0</span>m</div>
+            <div class="hud-stat">Cargo Yield: <span id="gemsVal">0</span></div>
+            <div class="hud-stat">Shield Absorbers: <span id="hud-shields">0</span></div>
         </div>
         <div id="mobile-touch-zones">
             <div class="touch-btn" id="left-touch"></div>
@@ -131,7 +142,7 @@
 
     <script>
         // =========================================================================
-        // ENGINE MANAGEMENT CORE REGISTRIES
+        // ENGINE MANAGEMENT SYSTEMS REGISTRIES
         // =========================================================================
         let gameState = 'MENU';
         let clock, scene, camera, renderer, playerShip;
@@ -139,7 +150,10 @@
         let playerX = 0, targetX = 0, currentScore = 0, currentRunGems = 0;
         const trackBoundsX = 5.5;
 
-        // Admin Security Override Counter Variables
+        let currentSector = 1;
+        let internalSpeedMultiplier = 1.0;
+        let activeShieldsCount = 0;
+
         let adminClickCounter = 0;
         let adminClickTimer = null;
 
@@ -155,18 +169,17 @@
         let hasInitializedStore = false;
         let sharedGemGeo, sharedGemMat, sharedObsGeo, sharedObsMat;
 
-        // Complete 10-Skin Config Registry Matrix
         const skinDatabase = [
-            { id: 'default',   name: 'Cyber Dart I',     cost: 0,    type: 'free',     style: 'cone' },
-            { id: 'scout',     name: 'Vanguard Scout',   cost: 15,   type: 'gems',     style: 'box' },
-            { id: 'inter',     name: 'Helix Fighter',    cost: 40,   type: 'gems',     style: 'cylinder' },
-            { id: 'cruiser',   name: 'Heavy Hauler',     cost: 75,   type: 'gems',     style: 'torus' },
-            { id: 'wraith',    name: 'Phantom Wraith',   cost: 120,  type: 'gems',     style: 'knot' },
-            { id: 'quantum',   name: 'Quantum Prism',    cost: 200,  type: 'gems',     style: 'sphere' },
-            { id: 'titan',     name: 'Titan Destroyer',  cost: 350,  type: 'gems',     style: 'heavy_cyl' },
-            { id: 'aurora',    name: 'Neon Aurora Pack', cost: 500,  type: 'crystals', style: 'cone_wide' },
-            { id: 'nebula',    name: 'Nebula Overlord',  cost: 1200, type: 'crystals', style: 'torus_thick' },
-            { id: 'void',      name: 'Void Singularity', cost: 2500, type: 'crystals', style: 'knot_dense' }
+            { id: 'default',   name: 'Cyber Dart I',     gemCost: 0,     crystalCost: 0,    ability: 'Baseline Operations Interceptor' },
+            { id: 'scout',     name: 'Vanguard Scout',   gemCost: 40,    crystalCost: 10,   ability: 'Gem Gravitational Magnet Field' },
+            { id: 'inter',     name: 'Helix Fighter',    gemCost: 100,   crystalCost: 25,   ability: 'Deflector Shield System (1 Charge)' },
+            { id: 'cruiser',   name: 'Heavy Hauler',     gemCost: 200,   crystalCost: 50,   ability: 'Double Cargo Gem Yield Modules' },
+            { id: 'wraith',    name: 'Phantom Wraith',   gemCost: 400,   crystalCost: 90,   ability: 'Phase Shift: 30% Smaller Hitbox Frame' },
+            { id: 'quantum',   name: 'Quantum Prism',    gemCost: 750,   crystalCost: 150,  ability: 'Score Matrix: 1.5x Distance Calculation' },
+            { id: 'titan',     name: 'Titan Destroyer',  gemCost: 1200,  crystalCost: 250,  ability: 'Heavy Armor Shielding (2 Charges)' },
+            { id: 'aurora',    name: 'Neon Aurora Racer', gemCost: 2000,  crystalCost: 400,  ability: 'Hyper Jump Engine (Start at Sector 3)' },
+            { id: 'nebula',    name: 'Nebula Overlord',  gemCost: 3500,  crystalCost: 700,  ability: 'Cosmic Fortune: Elevated Gem Drop Rates' },
+            { id: 'void',      name: 'Void Singularity', gemCost: 6000,  crystalCost: 1200, ability: 'God Code: Magnet + 1.5x Score + 1 Shield' }
         ];
 
         window.onload = function() {
@@ -177,30 +190,26 @@
         };
 
         // =========================================================================
-        // ADMIN INTERFACE PROTOCOLS
+        // ACCOUNT SECURITY ENGINE PROTOCOLS
         // =========================================================================
         function processAdminClickOverride() {
             adminClickCounter++;
             clearTimeout(adminClickTimer);
-            
             adminClickTimer = setTimeout(() => { adminClickCounter = 0; }, 2000);
 
             if (adminClickCounter >= 5) {
                 adminClickCounter = 0;
-                const pass = prompt("ENTER FLIGHT COMMANDER SECURITY ACCESS CODE:");
+                const pass = prompt("ENTER SYSTEM ADMINISTRATION MODULE PASSCODE:");
                 if (pass === "COMMANDER2026") {
                     savedGems = 999999;
                     savedCrystals = 999999;
-                    // Auto unlock all skins
-                    skinDatabase.forEach(skin => {
-                        if (!ownedSkins.includes(skin.id)) ownedSkins.push(skin.id);
-                    });
+                    skinDatabase.forEach(skin => { if (!ownedSkins.includes(skin.id)) ownedSkins.push(skin.id); });
                     syncLocalStorageMatrix();
                     renderHangarInterface();
                     equipFleetHull(currentSkinId);
-                    alert("ACCESS GRANTED: Admin parameters synced. Currency maximized, hangar hulls unlocked.");
+                    alert("ACCESS GRANTED: Administrative parameters activated.");
                 } else if (pass !== null) {
-                    alert("ACCESS DENIED: Signal connection rejected.");
+                    alert("ACCESS DENIED: Core mainframe authentication failed.");
                 }
             }
         }
@@ -222,22 +231,29 @@
                 const card = document.createElement('div');
                 card.className = `skin-card ${currentSkinId === skin.id ? 'active-border' : ''}`;
                 
-                let activeActionBtn = '';
+                let activeActionNode = '';
                 if (ownedSkins.includes(skin.id)) {
                     if (currentSkinId === skin.id) {
-                        activeActionBtn = `<button class="equipped">EQUIPPED</button>`;
+                        activeActionNode = `<button class="equipped">ACTIVE HULL LOGGED</button>`;
                     } else {
-                        activeActionBtn = `<button class="equip" onclick="equipFleetHull('${skin.id}')">EQUIP</button>`;
+                        activeActionNode = `<div></div><button class="equip" onclick="equipFleetHull('${skin.id}')">DEPLOY SHIP</button>`;
                     }
                 } else {
-                    if (skin.type === 'gems') {
-                        activeActionBtn = `<button class="buy-gems" onclick="purchaseFleetHull('${skin.id}', ${skin.cost}, 'gems')">${skin.cost} Gems</button>`;
-                    } else if (skin.type === 'crystals') {
-                        activeActionBtn = `<button class="buy-crystals" onclick="purchaseFleetHull('${skin.id}', ${skin.cost}, 'crystals')">${skin.cost} Cry.</button>`;
-                    }
+                    activeActionNode = `
+                        <div class="purchase-actions-grid">
+                            <button class="buy-gems" onclick="executePurchase('${skin.id}', ${skin.gemCost}, 'gems')">${skin.gemCost} Gems</button>
+                            <button class="buy-crystals" onclick="executePurchase('${skin.id}', ${skin.crystalCost}, 'crystals')">${skin.crystalCost} Cry.</button>
+                        </div>
+                    `;
                 }
 
-                card.innerHTML = `<div class="skin-name">${skin.name}</div> ${activeActionBtn}`;
+                card.innerHTML = `
+                    <div class="skin-info-block">
+                        <span class="skin-name">${skin.name}</span>
+                        <span class="skin-ability">${skin.ability}</span>
+                    </div>
+                    ${activeActionNode}
+                `;
                 container.appendChild(card);
             });
         }
@@ -245,15 +261,13 @@
         function equipFleetHull(id) {
             currentSkinId = id;
             if(playerShip) {
-                const meshConfig = dynamicallyGenerateGeometryProfile(id);
-                playerShip.geometry = meshConfig.geo;
-                playerShip.material = meshConfig.mat;
+                assembleDetailedProceduralSpaceship(playerShip, id);
             }
             syncLocalStorageMatrix();
             renderHangarInterface();
         }
 
-        function purchaseFleetHull(id, cost, currencyToken) {
+        function executePurchase(id, cost, currencyToken) {
             if (currencyToken === 'gems' && savedGems >= cost) {
                 savedGems -= cost;
                 ownedSkins.push(id);
@@ -263,7 +277,7 @@
                 ownedSkins.push(id);
                 equipFleetHull(id);
             } else {
-                alert(`Insufficient tokens. Earn more ${currencyToken} modules via gameplay.`);
+                alert(`Transaction failure: Insufficient ${currencyToken} registers.`);
             }
         }
 
@@ -291,83 +305,280 @@
             paypal.Buttons({
                 style: { color: 'blue', shape: 'rect', label: 'pay' },
                 createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: '5.00' } }] }),
-                onApprove: (data, actions) => actions.order.capture().then(() => alert('Transaction successful. Dev cores fully funded!'))
+                onApprove: (data, actions) => actions.order.capture().then(() => alert('System supported!'))
             }).render('#paypal-button-donate');
         }
 
         // =========================================================================
-        // MATERIAL AND DYNAMIC HULL GRAPHICS CONFIGURATIONS
+        // DYNAMIC PROCEDURAL SPACESHIP GENERATION CORE
+        // Constructs multi-component detailed vectors instead of basic single boxes
         // =========================================================================
-        function dynamicallyGenerateGeometryProfile(id) {
-            const targetData = skinDatabase.find(x => x.id === id) || skinDatabase[0];
-            let geo, mat;
-
-            switch(targetData.style) {
-                case 'box':          geo = new THREE.BoxGeometry(0.9, 0.4, 1.8); break;
-                case 'cylinder':     geo = new THREE.CylinderGeometry(0.4, 0.4, 2, 8); geo.rotateX(Math.PI/2); break;
-                case 'torus':        geo = new THREE.TorusGeometry(0.5, 0.15, 8, 24); break;
-                case 'knot':         geo = new THREE.TorusKnotGeometry(0.3, 0.1, 40, 8); break;
-                case 'sphere':       geo = new THREE.SphereGeometry(0.6, 12, 12); break;
-                case 'heavy_cyl':    geo = new THREE.CylinderGeometry(0.5, 0.6, 1.9, 10); geo.rotateX(Math.PI/2); break;
-                case 'cone_wide':    geo = new THREE.ConeGeometry(0.9, 2, 6); geo.rotateX(Math.PI/2); break;
-                case 'torus_thick':  geo = new THREE.TorusGeometry(0.5, 0.25, 8, 16); break;
-                case 'knot_dense':   geo = new THREE.TorusKnotGeometry(0.3, 0.12, 60, 4, 3, 5); break;
-                default:             geo = new THREE.ConeGeometry(0.5, 2.2, 5); geo.rotateX(Math.PI / 2); break;
+        function assembleDetailedProceduralSpaceship(group, id) {
+            // Flush existing child vectors completely
+            while(group.children.length > 0) {
+                group.remove(group.children[0]);
             }
 
-            // REFACTOR: Deep Material Styling Matrix for High-Fidelity Colors & Glows
+            // Material factory configurations
+            const matMetal = (color, emissive=0x000000, intensity=0) => 
+                new THREE.MeshStandardMaterial({ color, metalness: 0.85, roughness: 0.2, emissive, emissiveIntensity: intensity });
+            const matGloss = (color) => 
+                new THREE.MeshPhongMaterial({ color, shininess: 90, flatShading: true });
+            const matGlow = (color) => 
+                new THREE.MeshBasicMaterial({ color, wireframe: false });
+
             switch(id) {
-                case 'scout': // Vanguard Scout (The Box) - Emerald Sport with Lime Core Emissive Glow
-                    mat = new THREE.MeshStandardMaterial({ color: 0x116b32, metalness: 0.5, roughness: 0.4, emissive: 0x39ff14, emissiveIntensity: 0.4 });
+                case 'scout': { // Vanguard Scout (Detailed Racing Emerald Scout Frame)
+                    // Core Hull Cockpit Capsule
+                    let body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 1.4), matMetal(0x0f5229, 0x39ff14, 0.2));
+                    body.position.set(0, 0, 0);
+                    group.add(body);
+                    // Flat outrigger wings
+                    let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.5), matMetal(0x116b32));
+                    leftWing.position.set(0.45, -0.05, -0.1);
+                    leftWing.rotation.y = -0.1;
+                    let rightWing = leftWing.clone(); rightWing.position.x = -0.45; rightWing.rotation.y = 0.1;
+                    group.add(leftWing, rightWing);
+                    // Dual Antennae / Forward Sensor Rods
+                    let leftSensor = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4), matGloss(0xcccccc));
+                    leftSensor.rotation.x = Math.PI / 2; leftSensor.position.set(0.2, 0.05, 0.8);
+                    let rightSensor = leftSensor.clone(); rightSensor.position.x = -0.2;
+                    group.add(leftSensor, rightSensor);
+                    // Engine Exhaust Block
+                    let engine = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.15, 6), matMetal(0x222222, 0x39ff14, 2.0));
+                    engine.rotation.x = Math.PI/2; engine.position.set(0, 0, -0.75);
+                    group.add(engine);
                     break;
-                case 'inter': // Helix Fighter - High-Gloss Metallic Tiger Orange
-                    mat = new THREE.MeshStandardMaterial({ color: 0xff4500, metalness: 0.9, roughness: 0.1, specular: 0xffffff });
+                }
+                case 'inter': { // Helix Fighter (Sleek Twin-Engine Fighter Rig)
+                    let mainFuselage = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.6, 6), matMetal(0xcc3300));
+                    mainFuselage.rotation.x = Math.PI / 2; mainFuselage.position.set(0, 0, 0.2);
+                    group.add(mainFuselage);
+                    // Swept forward razor wings
+                    let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.3), matMetal(0xff4500));
+                    leftWing.position.set(0.4, 0, -0.1); leftWing.rotation.y = 0.3; leftWing.rotation.z = 0.1;
+                    let rightWing = leftWing.clone(); rightWing.position.x = -0.4; rightWing.rotation.y = -0.3; rightWing.rotation.z = -0.1;
+                    group.add(leftWing, rightWing);
+                    // Twin Rocket Nacelles
+                    let engL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6, 6), matMetal(0x333333, 0xffaa00, 1.5));
+                    engL.rotation.x = Math.PI/2; engL.position.set(0.25, -0.05, -0.4);
+                    let engR = engL.clone(); engR.position.x = -0.25;
+                    group.add(engL, engR);
                     break;
-                case 'cruiser': // Heavy Hauler - Matte Polished Deep Cobalt Blue
-                    mat = new THREE.MeshPhongMaterial({ color: 0x1e90ff, shininess: 80, flatShading: true });
+                }
+                case 'cruiser': { // Heavy Hauler (Industrial Modular Space Truck)
+                    // Large Cab Structure
+                    let cab = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.6), matGloss(0x1e90ff));
+                    cab.position.set(0, 0.1, 0.6);
+                    // Extended Cargo Spine Frame
+                    let spine = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 1.5), matMetal(0x444444));
+                    spine.position.set(0, 0, -0.2);
+                    // Dual Cargo Modules (Blocks strapped to spine)
+                    let container1 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.5), matGloss(0x0f4c81));
+                    container1.position.set(0, 0.1, 0.1);
+                    let container2 = container1.clone(); container2.position.z = -0.45; container2.material = matGloss(0x1565c0);
+                    group.add(cab, spine, container1, container2);
+                    // Quad Industrial Exhaust Arrays
+                    for (let x of [-0.25, 0.25]) {
+                        for(let y of [-0.1, 0.2]) {
+                            let ex = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.2, 5), matMetal(0x111111, 0x00ffff, 1.0));
+                            ex.rotation.x = Math.PI/2; ex.position.set(x, y, -1.0);
+                            group.add(ex);
+                        }
+                    }
                     break;
-                case 'wraith': // Phantom Wraith - Shadow Purple with Eerie Orchid Glow
-                    mat = new THREE.MeshStandardMaterial({ color: 0x2b0042, metalness: 0.8, roughness: 0.3, emissive: 0xda70d6, emissiveIntensity: 0.5 });
+                }
+                case 'wraith': { // Phantom Wraith (Stealth Orbit Delta Wing Bomber)
+                    // Ultra flat radar-evasive delta wing assembly
+                    let mainWing = new THREE.Mesh(new THREE.ConeGeometry(1.2, 1.6, 4), matMetal(0x18002a, 0xda70d6, 0.1));
+                    mainWing.rotation.x = Math.PI / 2; mainWing.scale.set(1, 0.06, 1); mainWing.position.set(0, 0, 0);
+                    group.add(mainWing);
+                    // Micro central cockpit ridge
+                    let ridge = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.15, 0.8), matMetal(0x2a0044));
+                    ridge.position.set(0, 0.06, 0.2);
+                    group.add(ridge);
+                    // Hidden Under-wing Stealth Thruster Band
+                    let thrusterLine = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.1), new THREE.MeshBasicMaterial({ color: 0xda70d6 }));
+                    thrusterLine.position.set(0, 0, -0.76);
+                    group.add(thrusterLine);
                     break;
-                case 'quantum': // Quantum Prism - Bright Gloss Platinum Matrix Cyan
-                    mat = new THREE.MeshStandardMaterial({ color: 0xe0ffff, metalness: 0.9, roughness: 0.05, emissive: 0x00ffff, emissiveIntensity: 0.2 });
+                }
+                case 'quantum': { // Quantum Prism (Advanced Alien Science Orb Iteration)
+                    // Central Power Matrix Sphere
+                    let core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), matMetal(0xffffff, 0x00ffff, 1.5));
+                    group.add(core);
+                    // Outer structural navigation ring halves
+                    let ringL = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.06, 6, 18), matMetal(0x88e0ff));
+                    ringL.rotation.y = Math.PI / 2; ringL.scale.set(1, 1, 0.2);
+                    let ringR = ringL.clone(); ringR.rotation.x = Math.PI / 2;
+                    group.add(ringL, ringR);
+                    // Floating engine dynamic focusing nodes
+                    let nodeF = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2, 4), matMetal(0x333333, 0x00ffff, 0.8));
+                    nodeF.rotation.x = Math.PI/2; nodeF.position.set(0, 0, -0.8);
+                    group.add(nodeF);
                     break;
-                case 'titan': // Titan Destroyer - Industrial Polished Charcoal and Dark Crimson
-                    mat = new THREE.MeshStandardMaterial({ color: 0x1c1c1c, metalness: 0.7, roughness: 0.6, emissive: 0x8b0000, emissiveIntensity: 0.6 });
+                }
+                case 'titan': { // Titan Destroyer (Armored Capital Warship Core)
+                    // Blocky Heavy Double Deck Fuselage Architecture
+                    let lowerHull = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.3, 1.9), matMetal(0x2d2d2d, 0x8b0000, 0.1));
+                    lowerHull.position.set(0, 0, 0);
+                    let upperHull = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 1.2), matMetal(0x1a1a1a));
+                    upperHull.position.set(0, 0.25, -0.1);
+                    // Command Deck Citadel Bridge Tower
+                    let bridge = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.2), matGloss(0x3a3a3a));
+                    bridge.position.set(0, 0.45, -0.5);
+                    group.add(lowerHull, upperHull, bridge);
+                    // Heavy Sponson Side Weapon Pod Flanks
+                    let leftGun = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.6), matMetal(0x111111));
+                    leftGun.position.set(0.3, 0.05, 0.2);
+                    let rightGun = leftGun.clone(); rightGun.position.x = -0.3;
+                    group.add(leftGun, rightGun);
+                    // Dual Primary Blast Engines
+                    let eng1 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.3, 8), matMetal(0x222222, 0xff0000, 2.5));
+                    eng1.rotation.x = Math.PI/2; eng1.position.set(0, 0.1, -1.05);
+                    group.add(eng1);
                     break;
-                case 'aurora': // Neon Aurora - Synthetic Electric Hot Pink Chrome
-                    mat = new THREE.MeshStandardMaterial({ color: 0xff007f, metalness: 0.9, roughness: 0.1, emissive: 0xff00ff, emissiveIntensity: 0.5 });
+                }
+                case 'aurora': { // Neon Aurora Racer (Formula-1 Hybrid Aesthetic Space Racer)
+                    // Central aerodynamic single-seat needle frame
+                    let coreCockpit = new THREE.Mesh(new THREE.ConeGeometry(0.18, 1.5, 6), matMetal(0xff007f, 0xff00ff, 0.5));
+                    coreCockpit.rotation.x = Math.PI / 2; coreCockpit.position.set(0, 0, 0.3);
+                    group.add(coreCockpit);
+                    // Aggressive downward-curved hydrofoil wing arrays
+                    let wingL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.4), matMetal(0x222222));
+                    wingL.position.set(0.45, -0.08, -0.1); wingL.rotation.z = -0.25; wingL.rotation.y = 0.1;
+                    let wingR = wingL.clone(); wingR.position.x = -0.45; wingR.rotation.z = 0.25; wingR.rotation.y = -0.1;
+                    group.add(wingL, wingR);
+                    // Vertical Stabilizer Matrix Fins
+                    let finL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.35, 0.3), matMetal(0xff007f));
+                    finL.position.set(0.85, 0.1, -0.1);
+                    let finR = finL.clone(); finR.position.x = -0.85;
+                    group.add(finL, finR);
+                    // High Intensity Laser Thruster Burner Tubes
+                    let engine = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.25, 6), matMetal(0x111111, 0xff00ff, 3.0));
+                    engine.rotation.x = Math.PI/2; engine.position.set(0, -0.05, -0.5);
+                    group.add(engine);
                     break;
-                case 'nebula': // Nebula Overlord - Royal Deep Galaxy Violet with Gold Flakes
-                    mat = new THREE.MeshStandardMaterial({ color: 0x4b0082, metalness: 0.9, roughness: 0.2, emissive: 0xffd700, emissiveIntensity: 0.3 });
+                }
+                case 'nebula': { // Nebula Overlord (Extraterrestrial Majestic Command Vessel)
+                    // Massive Core Wide Disc Base
+                    let disc = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.2, 7), matMetal(0x320054, 0xffd700, 0.2));
+                    disc.position.set(0, 0, 0); group.add(disc);
+                    // Symmetrical Dual Forward Prong Forks
+                    let leftProng = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.8), matMetal(0x4b0082));
+                    leftProng.position.set(0.25, 0, 0.6);
+                    let rightProng = leftProng.clone(); rightProng.position.x = -0.25;
+                    group.add(leftProng, rightProng);
+                    // Royal Crest Golden Top Wings
+                    let crown = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5, 3), matMetal(0xffd700));
+                    crown.position.set(0, 0.25, -0.2); crown.rotation.x = -0.4;
+                    group.add(crown);
+                    // Rear Cluster Core Plasma Drives
+                    for(let offset of [-0.3, 0, 0.3]) {
+                        let subEng = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.15, 6), matMetal(0x222222, 0xffd700, 2.0));
+                        subEng.rotation.x = Math.PI/2; subEng.position.set(offset, -0.05, -0.65);
+                        group.add(subEng);
+                    }
                     break;
-                case 'void': // Void Singularity - Ghost Matrix Green Digital Wireframe Vector
-                    mat = new THREE.MeshBasicMaterial({ color: 0x00ff33, wireframe: true });
+                }
+                case 'void': { // Void Singularity (Dark Energy Abstract Matrix Grid Ship)
+                    // Floating geometric panels suspended around the space coordinates
+                    let centerVoid = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x000000 }));
+                    group.add(centerVoid);
+                    
+                    // Outward exploding wireframe matrix shell geometry parameters
+                    for(let i = 0; i < 6; i++) {
+                        let panel = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.03, 0.6), new THREE.MeshBasicMaterial({ color: 0x00ff33, wireframe: true }));
+                        let ang = (i / 6) * Math.PI * 2;
+                        panel.position.set(Math.cos(ang) * 0.6, Math.sin(ang) * 0.2, (i%2 === 0 ? 0.2 : -0.3));
+                        panel.rotation.z = ang;
+                        panel.rotation.y = 0.2;
+                        group.add(panel);
+                    }
+                    // Singular central neon engine conduit
+                    let particleTrail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.8), matGlow(0x00ff33));
+                    particleTrail.position.set(0, 0, -0.6);
+                    group.add(particleTrail);
                     break;
-                default: // Default Cyber Dart - Original Neon Mint Teal
-                    mat = new THREE.MeshPhongMaterial({ color: 0x00ffcc, shininess: 100, emissive: 0x003322 });
+                }
+                default: { // Cyber Dart I (Enhanced Baseline Interceptor Framework)
+                    // Needle Main Engine Fuselage Center
+                    let body = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.6, 5), matMetal(0x00ffcc, 0x003322, 0.5));
+                    body.rotation.x = Math.PI / 2; body.position.set(0, 0, 0.1);
+                    group.add(body);
+                    // Twin stabilizer flight wings
+                    let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.35), matMetal(0x0088aa));
+                    leftWing.position.set(0.35, -0.04, -0.2); leftWing.rotation.y = -0.2;
+                    let rightWing = leftWing.clone(); rightWing.position.x = -0.35; rightWing.rotation.y = 0.2;
+                    group.add(leftWing, rightWing);
+                    // Core Plasma Jet Ring Exhaust
+                    let eng = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.2, 6), matMetal(0x222222, 0x00ffff, 2.0));
+                    eng.rotation.x = Math.PI / 2; eng.position.z = -0.75;
+                    group.add(eng);
+                    break;
+                }
             }
-
-            return { geo, mat };
         }
 
         // =========================================================================
-        // ENGINE RUNTIME CONTROL SYSTEMS
+        // ENGINE CONTROL AND RUNTIME LOOP PIPELINES
         // =========================================================================
         function startGame() {
             document.getElementById('main-menu').style.display = 'none';
             document.getElementById('game-ui').style.display = 'flex';
             
             currentScore = 0; currentRunGems = 0; playerX = 0; targetX = 0;
+            currentSector = 1;
+            internalSpeedMultiplier = 1.0;
+            scene.fog.color.setHex(0x05050a);
+            
+            activeShieldsCount = 0;
+            if (currentSkinId === 'inter') activeShieldsCount = 1;
+            if (currentSkinId === 'titan') activeShieldsCount = 2;
+            if (currentSkinId === 'void') activeShieldsCount = 1;
+
+            if (currentSkinId === 'aurora') {
+                currentSector = 3;
+                internalSpeedMultiplier = 1.6;
+                scene.fog.color.setHex(0x2b0042);
+            }
+
             playerShip.position.x = 0;
-            document.getElementById('scoreVal').innerText = '0';
-            document.getElementById('gemsVal').innerText = '0';
+            updateHudDisplayElements();
             
             obstacles.forEach(obs => scene.remove(obs));
             gems.forEach(gem => scene.remove(gem));
             obstacles = []; gems = [];
 
             gameState = 'PLAYING';
+        }
+
+        function updateHudDisplayElements() {
+            document.getElementById('scoreVal').innerText = currentScore;
+            document.getElementById('gemsVal').innerText = currentRunGems;
+            document.getElementById('hud-level').innerText = currentSector;
+            document.getElementById('hud-shields').innerText = activeShieldsCount;
+        }
+
+        function triggerSectorLevelUp() {
+            currentSector++;
+            internalSpeedMultiplier += 0.28;
+            
+            const colorSpectrum = [0x05050a, 0x041a0d, 0x1f022b, 0x2b1202, 0x140226];
+            const chosenHex = colorSpectrum[(currentSector - 1) % colorSpectrum.length];
+            scene.fog.color.setHex(chosenHex);
+            renderer.setClearColor(chosenHex);
+
+            const banner = document.getElementById('level-banner');
+            banner.innerText = `SECTOR ${currentSector}`;
+            banner.style.display = 'block';
+            setTimeout(() => { banner.style.opacity = '1'; banner.style.transform = 'translate(-50%, -50%) scale(1)'; }, 50);
+            
+            setTimeout(() => {
+                banner.style.opacity = '0';
+                banner.style.transform = 'translate(-50%, -50%) scale(0.5)';
+                setTimeout(() => { banner.style.display = 'none'; }, 400);
+            }, 1700);
         }
 
         function gameOver() {
@@ -382,7 +593,7 @@
 
         function initialize3DSpaceEngine() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x010103, 0.016);
+            scene.fog = new THREE.FogExp2(0x05050a, 0.016);
             clock = new THREE.Clock();
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -392,23 +603,24 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            const initShell = dynamicallyGenerateGeometryProfile(currentSkinId);
-            playerShip = new THREE.Mesh(initShell.geo, initShell.mat);
+            // Setup playerShip as structural coordinate system Component Group
+            playerShip = new THREE.Group();
             scene.add(playerShip);
+            assembleDetailedProceduralSpaceship(playerShip, currentSkinId);
 
-            sharedGemGeo = new THREE.DodecahedronGeometry(0.32);
-            sharedGemMat = new THREE.MeshPhongMaterial({ color: 0xff00ff, flatShading: true, shininess: 50 });
+            sharedGemGeo = new THREE.DodecahedronGeometry(0.3);
+            sharedGemMat = new THREE.MeshPhongMaterial({ color: 0xff00ff, flatShading: true, shininess: 80 });
             sharedObsGeo = new THREE.SphereGeometry(0.55, 8, 8);
-            sharedObsMat = new THREE.MeshPhongMaterial({ color: 0x444455, flatShading: true });
+            sharedObsMat = new THREE.MeshPhongMaterial({ color: 0x4d4d5e, flatShading: true });
 
-            scene.add(new THREE.AmbientLight(0x666677));
-            const light = new THREE.DirectionalLight(0xffffff, 1.5);
+            scene.add(new THREE.AmbientLight(0x555566));
+            const light = new THREE.DirectionalLight(0xffffff, 1.8);
             light.position.set(5, 15, -10);
             scene.add(light);
 
             const starGeo = new THREE.BufferGeometry();
-            const positions = new Float32Array(900 * 3);
-            for(let i=0; i<2700; i+=3) {
+            const positions = new Float32Array(1000 * 3);
+            for(let i=0; i<3000; i+=3) {
                 positions[i] = (Math.random() - 0.5) * 160;
                 positions[i+1] = (Math.random() - 0.5) * 160;
                 positions[i+2] = Math.random() * 400;
@@ -436,7 +648,6 @@
 
             const leftZ = document.getElementById('left-touch');
             const rightZ = document.getElementById('right-touch');
-
             leftZ.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'PLAYING') targetX = trackBoundsX; }, {passive: false});
             rightZ.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'PLAYING') targetX = -trackBoundsX; }, {passive: false});
             leftZ.addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
@@ -454,14 +665,25 @@
                 return;
             }
 
-            const moveSpeed = 95 * delta;
+            const baseSpeed = 95 * delta;
+            const operationalSpeed = baseSpeed * internalSpeedMultiplier;
+
             playerX = THREE.MathUtils.lerp(playerX, targetX, 5 * delta);
             playerShip.position.x = playerX;
             playerShip.rotation.z = (playerX - targetX) * 0.12;
             playerShip.rotation.y = 0;
 
-            if (Math.random() < (3.6 * delta)) { 
-                const isGem = Math.random() < 0.24;
+            const pointsMultiplier = (currentSkinId === 'quantum' || currentSkinId === 'void') ? 1.5 : 1.0;
+            const previousScore = currentScore;
+            currentScore += Math.floor(12 * delta * pointsMultiplier);
+            
+            if (Math.floor(currentScore / 1000) > Math.floor(previousScore / 1000)) {
+                triggerSectorLevelUp();
+            }
+
+            const spawnRateThreshold = (currentSkinId === 'nebula') ? 5.2 : 3.6;
+            if (Math.random() < (spawnRateThreshold * delta)) { 
+                const isGem = Math.random() < 0.25;
                 const mesh = isGem ? new THREE.Mesh(sharedGemGeo, sharedGemMat) : new THREE.Mesh(sharedObsGeo, sharedObsMat);
                 if (!isGem) {
                     const scale = Math.random() * 0.5 + 0.8;
@@ -472,14 +694,23 @@
                 if (isGem) gems.push(mesh); else obstacles.push(mesh);
             }
 
-            currentScore += Math.floor(12 * delta);
-            document.getElementById('scoreVal').innerText = currentScore;
+            updateHudDisplayElements();
+
+            const collisionBoundaryRadius = (currentSkinId === 'wraith') ? 0.66 : 0.95;
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].position.z -= moveSpeed; 
-                if (obstacles[i].position.z < 0.8 && obstacles[i].position.z > -0.8 && Math.abs(obstacles[i].position.x - playerShip.position.x) < 0.95) {
-                    gameOver();
-                    return;
+                obstacles[i].position.z -= operationalSpeed; 
+                
+                if (obstacles[i].position.z < 0.8 && obstacles[i].position.z > -0.8 && Math.abs(obstacles[i].position.x - playerShip.position.x) < collisionBoundaryRadius) {
+                    if (activeShieldsCount > 0) {
+                        activeShieldsCount--;
+                        scene.remove(obstacles[i]);
+                        obstacles.splice(i, 1);
+                        continue;
+                    } else {
+                        gameOver();
+                        return;
+                    }
                 }
                 if (obstacles[i].position.z < -12) {
                     scene.remove(obstacles[i]);
@@ -488,11 +719,19 @@
             }
 
             for (let i = gems.length - 1; i >= 0; i--) {
-                gems[i].position.z -= moveSpeed;
+                gems[i].position.z -= operationalSpeed;
                 gems[i].rotation.y += 2.5 * delta;
+
+                if (currentSkinId === 'scout' || currentSkinId === 'void') {
+                    if (gems[i].position.z < 35 && gems[i].position.z > 0) {
+                        gems[i].position.x = THREE.MathUtils.lerp(gems[i].position.x, playerShip.position.x, 3.5 * delta);
+                    }
+                }
+
                 if (gems[i].position.z < 0.8 && gems[i].position.z > -0.8 && Math.abs(gems[i].position.x - playerShip.position.x) < 0.95) {
-                    currentRunGems++;
-                    document.getElementById('gemsVal').innerText = currentRunGems;
+                    const collectedYield = (currentSkinId === 'cruiser') ? 2 : 1;
+                    currentRunGems += collectedYield;
+                    
                     scene.remove(gems[i]);
                     gems.splice(i, 1);
                     continue;
