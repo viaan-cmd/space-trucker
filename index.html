@@ -24,7 +24,7 @@
         .touch-btn { flex: 1; height: 100%; opacity: 0; -webkit-tap-highlight-color: transparent; }
 
         /* --- MAIN MENU INTERFACE --- */
-        #main-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 20; background: rgba(5, 5, 8, 0.95); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 25px 15px; pointer-events: auto; }
+        #main-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(5, 5, 8, 0.95); backdrop-filter: blur(15px); display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 25px 15px 140px 15px; pointer-events: auto; }
         
         .menu-hero { display: flex; flex-direction: column; align-items: center; width: 100%; max-width: 500px; text-align: center; margin-bottom: 25px; flex-shrink: 0; }
         .menu-title { font-size: 46px; color: #00ffcc; text-shadow: 0 0 20px rgba(0,255,204,0.4); font-weight: 900; letter-spacing: 3px; margin-bottom: 5px; cursor: pointer; }
@@ -314,12 +314,10 @@
         // Constructs multi-component detailed vectors instead of basic single boxes
         // =========================================================================
         function assembleDetailedProceduralSpaceship(group, id) {
-            // Flush existing child vectors completely
             while(group.children.length > 0) {
                 group.remove(group.children[0]);
             }
 
-            // Material factory configurations
             const matMetal = (color, emissive=0x000000, intensity=0) => 
                 new THREE.MeshStandardMaterial({ color, metalness: 0.85, roughness: 0.2, emissive, emissiveIntensity: intensity });
             const matGloss = (color) => 
@@ -328,57 +326,46 @@
                 new THREE.MeshBasicMaterial({ color, wireframe: false });
 
             switch(id) {
-                case 'scout': { // Vanguard Scout (Detailed Racing Emerald Scout Frame)
-                    // Core Hull Cockpit Capsule
+                case 'scout': {
                     let body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.3, 1.4), matMetal(0x0f5229, 0x39ff14, 0.2));
                     body.position.set(0, 0, 0);
                     group.add(body);
-                    // Flat outrigger wings
                     let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.05, 0.5), matMetal(0x116b32));
-                    leftWing.position.set(0.45, -0.05, -0.1);
-                    leftWing.rotation.y = -0.1;
+                    leftWing.position.set(0.45, -0.05, -0.1); leftWing.rotation.y = -0.1;
                     let rightWing = leftWing.clone(); rightWing.position.x = -0.45; rightWing.rotation.y = 0.1;
                     group.add(leftWing, rightWing);
-                    // Dual Antennae / Forward Sensor Rods
                     let leftSensor = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.4), matGloss(0xcccccc));
                     leftSensor.rotation.x = Math.PI / 2; leftSensor.position.set(0.2, 0.05, 0.8);
                     let rightSensor = leftSensor.clone(); rightSensor.position.x = -0.2;
                     group.add(leftSensor, rightSensor);
-                    // Engine Exhaust Block
                     let engine = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.15, 6), matMetal(0x222222, 0x39ff14, 2.0));
                     engine.rotation.x = Math.PI/2; engine.position.set(0, 0, -0.75);
                     group.add(engine);
                     break;
                 }
-                case 'inter': { // Helix Fighter (Sleek Twin-Engine Fighter Rig)
+                case 'inter': {
                     let mainFuselage = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.6, 6), matMetal(0xcc3300));
                     mainFuselage.rotation.x = Math.PI / 2; mainFuselage.position.set(0, 0, 0.2);
                     group.add(mainFuselage);
-                    // Swept forward razor wings
                     let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.04, 0.3), matMetal(0xff4500));
                     leftWing.position.set(0.4, 0, -0.1); leftWing.rotation.y = 0.3; leftWing.rotation.z = 0.1;
                     let rightWing = leftWing.clone(); rightWing.position.x = -0.4; rightWing.rotation.y = -0.3; rightWing.rotation.z = -0.1;
                     group.add(leftWing, rightWing);
-                    // Twin Rocket Nacelles
                     let engL = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.6, 6), matMetal(0x333333, 0xffaa00, 1.5));
                     engL.rotation.x = Math.PI/2; engL.position.set(0.25, -0.05, -0.4);
                     let engR = engL.clone(); engR.position.x = -0.25;
                     group.add(engL, engR);
                     break;
                 }
-                case 'cruiser': { // Heavy Hauler (Industrial Modular Space Truck)
-                    // Large Cab Structure
+                case 'cruiser': {
                     let cab = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.5, 0.6), matGloss(0x1e90ff));
                     cab.position.set(0, 0.1, 0.6);
-                    // Extended Cargo Spine Frame
                     let spine = new THREE.Mesh(new THREE.BoxGeometry(0.3, 0.2, 1.5), matMetal(0x444444));
                     spine.position.set(0, 0, -0.2);
-                    // Dual Cargo Modules (Blocks strapped to spine)
                     let container1 = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.5, 0.5), matGloss(0x0f4c81));
                     container1.position.set(0, 0.1, 0.1);
                     let container2 = container1.clone(); container2.position.z = -0.45; container2.material = matGloss(0x1565c0);
                     group.add(cab, spine, container1, container2);
-                    // Quad Industrial Exhaust Arrays
                     for (let x of [-0.25, 0.25]) {
                         for(let y of [-0.1, 0.2]) {
                             let ex = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.2, 5), matMetal(0x111111, 0x00ffff, 1.0));
@@ -388,92 +375,74 @@
                     }
                     break;
                 }
-                case 'wraith': { // Phantom Wraith (Stealth Orbit Delta Wing Bomber)
-                    // Ultra flat radar-evasive delta wing assembly
+                case 'wraith': {
                     let mainWing = new THREE.Mesh(new THREE.ConeGeometry(1.2, 1.6, 4), matMetal(0x18002a, 0xda70d6, 0.1));
                     mainWing.rotation.x = Math.PI / 2; mainWing.scale.set(1, 0.06, 1); mainWing.position.set(0, 0, 0);
                     group.add(mainWing);
-                    // Micro central cockpit ridge
                     let ridge = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.15, 0.8), matMetal(0x2a0044));
                     ridge.position.set(0, 0.06, 0.2);
                     group.add(ridge);
-                    // Hidden Under-wing Stealth Thruster Band
                     let thrusterLine = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.05, 0.1), new THREE.MeshBasicMaterial({ color: 0xda70d6 }));
                     thrusterLine.position.set(0, 0, -0.76);
                     group.add(thrusterLine);
                     break;
                 }
-                case 'quantum': { // Quantum Prism (Advanced Alien Science Orb Iteration)
-                    // Central Power Matrix Sphere
+                case 'quantum': {
                     let core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 12, 12), matMetal(0xffffff, 0x00ffff, 1.5));
                     group.add(core);
-                    // Outer structural navigation ring halves
                     let ringL = new THREE.Mesh(new THREE.TorusGeometry(0.55, 0.06, 6, 18), matMetal(0x88e0ff));
                     ringL.rotation.y = Math.PI / 2; ringL.scale.set(1, 1, 0.2);
                     let ringR = ringL.clone(); ringR.rotation.x = Math.PI / 2;
                     group.add(ringL, ringR);
-                    // Floating engine dynamic focusing nodes
                     let nodeF = new THREE.Mesh(new THREE.ConeGeometry(0.08, 0.2, 4), matMetal(0x333333, 0x00ffff, 0.8));
                     nodeF.rotation.x = Math.PI/2; nodeF.position.set(0, 0, -0.8);
                     group.add(nodeF);
                     break;
                 }
-                case 'titan': { // Titan Destroyer (Armored Capital Warship Core)
-                    // Blocky Heavy Double Deck Fuselage Architecture
+                case 'titan': {
                     let lowerHull = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.3, 1.9), matMetal(0x2d2d2d, 0x8b0000, 0.1));
                     lowerHull.position.set(0, 0, 0);
                     let upperHull = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.25, 1.2), matMetal(0x1a1a1a));
                     upperHull.position.set(0, 0.25, -0.1);
-                    // Command Deck Citadel Bridge Tower
                     let bridge = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.2, 0.2), matGloss(0x3a3a3a));
                     bridge.position.set(0, 0.45, -0.5);
                     group.add(lowerHull, upperHull, bridge);
-                    // Heavy Sponson Side Weapon Pod Flanks
                     let leftGun = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.15, 0.6), matMetal(0x111111));
                     leftGun.position.set(0.3, 0.05, 0.2);
                     let rightGun = leftGun.clone(); rightGun.position.x = -0.3;
                     group.add(leftGun, rightGun);
-                    // Dual Primary Blast Engines
                     let eng1 = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.3, 8), matMetal(0x222222, 0xff0000, 2.5));
                     eng1.rotation.x = Math.PI/2; eng1.position.set(0, 0.1, -1.05);
                     group.add(eng1);
                     break;
                 }
-                case 'aurora': { // Neon Aurora Racer (Formula-1 Hybrid Aesthetic Space Racer)
-                    // Central aerodynamic single-seat needle frame
+                case 'aurora': {
                     let coreCockpit = new THREE.Mesh(new THREE.ConeGeometry(0.18, 1.5, 6), matMetal(0xff007f, 0xff00ff, 0.5));
                     coreCockpit.rotation.x = Math.PI / 2; coreCockpit.position.set(0, 0, 0.3);
                     group.add(coreCockpit);
-                    // Aggressive downward-curved hydrofoil wing arrays
                     let wingL = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.04, 0.4), matMetal(0x222222));
                     wingL.position.set(0.45, -0.08, -0.1); wingL.rotation.z = -0.25; wingL.rotation.y = 0.1;
                     let wingR = wingL.clone(); wingR.position.x = -0.45; wingR.rotation.z = 0.25; wingR.rotation.y = -0.1;
                     group.add(wingL, wingR);
-                    // Vertical Stabilizer Matrix Fins
                     let finL = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.35, 0.3), matMetal(0xff007f));
                     finL.position.set(0.85, 0.1, -0.1);
                     let finR = finL.clone(); finR.position.x = -0.85;
                     group.add(finL, finR);
-                    // High Intensity Laser Thruster Burner Tubes
                     let engine = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.25, 6), matMetal(0x111111, 0xff00ff, 3.0));
                     engine.rotation.x = Math.PI/2; engine.position.set(0, -0.05, -0.5);
                     group.add(engine);
                     break;
                 }
-                case 'nebula': { // Nebula Overlord (Extraterrestrial Majestic Command Vessel)
-                    // Massive Core Wide Disc Base
+                case 'nebula': {
                     let disc = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.7, 0.2, 7), matMetal(0x320054, 0xffd700, 0.2));
                     disc.position.set(0, 0, 0); group.add(disc);
-                    // Symmetrical Dual Forward Prong Forks
                     let leftProng = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.1, 0.8), matMetal(0x4b0082));
                     leftProng.position.set(0.25, 0, 0.6);
                     let rightProng = leftProng.clone(); rightProng.position.x = -0.25;
                     group.add(leftProng, rightProng);
-                    // Royal Crest Golden Top Wings
                     let crown = new THREE.Mesh(new THREE.ConeGeometry(0.25, 0.5, 3), matMetal(0xffd700));
                     crown.position.set(0, 0.25, -0.2); crown.rotation.x = -0.4;
                     group.add(crown);
-                    // Rear Cluster Core Plasma Drives
                     for(let offset of [-0.3, 0, 0.3]) {
                         let subEng = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.07, 0.15, 6), matMetal(0x222222, 0xffd700, 2.0));
                         subEng.rotation.x = Math.PI/2; subEng.position.set(offset, -0.05, -0.65);
@@ -481,37 +450,29 @@
                     }
                     break;
                 }
-                case 'void': { // Void Singularity (Dark Energy Abstract Matrix Grid Ship)
-                    // Floating geometric panels suspended around the space coordinates
+                case 'void': {
                     let centerVoid = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.2, 0.2), new THREE.MeshBasicMaterial({ color: 0x000000 }));
                     group.add(centerVoid);
-                    
-                    // Outward exploding wireframe matrix shell geometry parameters
                     for(let i = 0; i < 6; i++) {
                         let panel = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.03, 0.6), new THREE.MeshBasicMaterial({ color: 0x00ff33, wireframe: true }));
                         let ang = (i / 6) * Math.PI * 2;
                         panel.position.set(Math.cos(ang) * 0.6, Math.sin(ang) * 0.2, (i%2 === 0 ? 0.2 : -0.3));
-                        panel.rotation.z = ang;
-                        panel.rotation.y = 0.2;
+                        panel.rotation.z = ang; panel.rotation.y = 0.2;
                         group.add(panel);
                     }
-                    // Singular central neon engine conduit
                     let particleTrail = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.08, 0.8), matGlow(0x00ff33));
                     particleTrail.position.set(0, 0, -0.6);
                     group.add(particleTrail);
                     break;
                 }
-                default: { // Cyber Dart I (Enhanced Baseline Interceptor Framework)
-                    // Needle Main Engine Fuselage Center
+                default: {
                     let body = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.6, 5), matMetal(0x00ffcc, 0x003322, 0.5));
                     body.rotation.x = Math.PI / 2; body.position.set(0, 0, 0.1);
                     group.add(body);
-                    // Twin stabilizer flight wings
                     let leftWing = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.35), matMetal(0x0088aa));
                     leftWing.position.set(0.35, -0.04, -0.2); leftWing.rotation.y = -0.2;
                     let rightWing = leftWing.clone(); rightWing.position.x = -0.35; rightWing.rotation.y = 0.2;
                     group.add(leftWing, rightWing);
-                    // Core Plasma Jet Ring Exhaust
                     let eng = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.2, 6), matMetal(0x222222, 0x00ffff, 2.0));
                     eng.rotation.x = Math.PI / 2; eng.position.z = -0.75;
                     group.add(eng);
@@ -603,7 +564,6 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            // Setup playerShip as structural coordinate system Component Group
             playerShip = new THREE.Group();
             scene.add(playerShip);
             assembleDetailedProceduralSpaceship(playerShip, currentSkinId);
