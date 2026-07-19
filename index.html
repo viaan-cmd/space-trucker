@@ -6,28 +6,65 @@
     <title>Cosmic Cargo: Space Trucker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; user-select: none; }
         
-        #gameCanvas { display: block; width: 100vw; height: 100vh; }
+        #gameCanvas { display: block; width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
 
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; z-index: 10; }
-        .interactive { pointer-events: auto; }
-
+        /* --- GAME HUD (Hidden in Menu) --- */
+        #game-ui { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; display: none; flex-direction: column; justify-content: space-between; padding: 20px; }
         .hud { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; backdrop-filter: blur(5px); width: fit-content; }
-        .hud h1 { font-size: 24px; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; margin-bottom: 5px; }
-        
-        #monetization-panel { position: absolute; right: 20px; top: 20px; width: 300px; max-height: 90vh; overflow-y: auto; z-index: 20; } /* FIX: Elevated z-index */
-        .shop-box { background: rgba(20, 20, 30, 0.9); border: 2px solid #ff00ff; border-radius: 12px; padding: 20px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
-        .shop-box h2 { color: #ff00ff; text-align: center; margin-bottom: 15px; font-size: 20px; letter-spacing: 1px; }
-        .product-card { background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .product-card h3 { font-size: 16px; margin-bottom: 5px; color: #fff; }
-        .product-card p { font-size: 12px; color: #b3b3b3; margin-bottom: 12px; line-height: 1.4; }
-
-        #mobile-touch-zones { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; display: flex; pointer-events: auto; z-index: 5; touch-action: none; }
+        .hud h1 { font-size: 20px; color: #00ffcc; margin-bottom: 5px; }
+        #mobile-touch-zones { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; display: flex; pointer-events: auto; touch-action: none; }
         .touch-btn { flex: 1; height: 100%; opacity: 0; -webkit-tap-highlight-color: transparent; }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 10px; }
+        /* --- MAIN MENU INTERFACE --- */
+        #main-menu { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 20; background: rgba(8, 8, 12, 0.9); backdrop-filter: blur(10px); display: flex; flex-direction: column; align-items: center; overflow-y: auto; padding: 30px 15px; pointer-events: auto; }
+        
+        .menu-title { font-size: 40px; color: #00ffcc; text-shadow: 0 0 20px #00ffcc; text-align: center; margin-bottom: 5px; font-weight: 900; letter-spacing: 2px; }
+        .currency-display { background: #15151f; padding: 10px 20px; border-radius: 20px; border: 1px solid #333; margin-bottom: 25px; font-weight: bold; font-size: 14px; display: flex; gap: 20px; }
+        .currency-display span { color: #ff00ff; }
+        .currency-display span.premium { color: #ffd700; }
+
+        /* Layout Grid System */
+        .menu-grid { display: flex; flex-direction: column; gap: 20px; width: 100%; max-width: 950px; margin-bottom: 30px; }
+        
+        @media (min-width: 768px) {
+            .menu-grid { display: grid; grid-template-columns: 1fr 2fr; }
+            .store-panel { grid-column: 1; }
+            .garage-panel { grid-column: 2; grid-row: 1 / span 2; }
+        }
+
+        .panel { background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 20px; }
+        .panel h2 { font-size: 18px; color: #fff; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px; font-weight: 600; letter-spacing: 0.5px; }
+
+        /* Tutorial */
+        .tutorial-text { font-size: 14px; color: #b5b5c0; line-height: 1.5; }
+        .key-hint { background: #252530; padding: 2px 6px; border-radius: 4px; font-family: monospace; color: #00ffcc; border: 1px solid #444; }
+
+        /* 10-Skin Responsive Matrix Grid Layout */
+        .skin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; max-height: 480px; overflow-y: auto; padding-right: 5px; }
+        .skin-card { background: #12121a; border: 1px solid #222; border-radius: 8px; padding: 12px; display: flex; flex-direction: column; justify-content: space-between; align-items: center; text-align: center; min-height: 120px; transition: border 0.2s; }
+        .skin-card.active-border { border-color: #00ffcc; }
+        .skin-name { font-size: 13px; font-weight: bold; margin-bottom: 8px; color: #eaeaea; }
+        
+        .skin-card button { width: 100%; padding: 7px 5px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 11px; color: white; transition: background 0.2s; }
+        .skin-card button.equip { background: #00ffcc; color: black; }
+        .skin-card button.buy-gems { background: #8a1f8a; background-image: linear-gradient(135deg, #a020f0, #ff00ff); }
+        .skin-card button.buy-crystals { background: #b8860b; background-image: linear-gradient(135deg, #ffd700, #ff8c00); color: black; }
+        .skin-card button.equipped { background: #222; color: #666; cursor: default; }
+
+        /* Store */
+        .store-item { margin-bottom: 15px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 6px; border-left: 3px solid #ffd700; }
+        .store-item h3 { font-size: 14px; margin-bottom: 3px; }
+        .store-item p { font-size: 12px; color: #8c8c9e; margin-bottom: 8px; }
+
+        /* Launch Execution Button */
+        .play-btn { background: #00ffcc; color: #000; border: none; padding: 12px 50px; font-size: 20px; font-weight: bold; border-radius: 25px; cursor: pointer; box-shadow: 0 0 15px rgba(0, 255, 204, 0.4); transition: transform 0.2s; margin-top: 15px; margin-bottom: 20px; flex-shrink: 0; }
+        .play-btn:hover { transform: scale(1.03); }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
+        .skin-grid::-webkit-scrollbar-thumb { background: #ff00ff; }
     </style>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -37,29 +74,61 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="ui-layer">
-        <div class="hud">
-            <h1>COSMIC CARGO</h1>
-            <div>Distance: <span id="scoreVal">0</span>m</div>
-            <div>Cargo Payload: <span id="gemsVal">0</span> Gems</div>
+    <!-- USER INTERFACE MAIN CONTAINER MENU -->
+    <div id="main-menu">
+        <h1 class="menu-title">COSMIC CARGO</h1>
+        
+        <div class="currency-display">
+            <div>Gems: <span id="menu-gems-val">0</span></div>
+            <div>Crystals: <span id="menu-crystals-val" class="premium">0</span></div>
         </div>
 
-        <div id="monetization-panel" class="interactive">
-            <div class="shop-box">
-                <h2>BLACK MARKET</h2>
-                <div class="product-card">
-                    <h3>1,000 Premium Crystals</h3>
-                    <p>Unlock custom hulls instantly.</p>
-                    <div id="paypal-button-pack-1"></div>
+        <div class="menu-grid">
+            <!-- Left Grid Segment: Guide & Storefront -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="panel">
+                    <h2>FLIGHT MANUAL</h2>
+                    <p class="tutorial-text">
+                        Steer clear of floating space junk. Harvest purple gems to bank cargo currency.<br><br>
+                        <strong>PC:</strong> <span class="key-hint">A</span> / <span class="key-hint">D</span> or Arrow Keys.<br>
+                        <strong>Mobile:</strong> Tap left/right side regions.
+                    </p>
                 </div>
-                <div class="product-card">
-                    <h3>Support the Creator ($5)</h3>
-                    <p>Help fund deeper sector development.</p>
-                    <div id="paypal-button-donate"></div>
+
+                <div class="panel store-panel">
+                    <h2>BLACK MARKET SUPPLY</h2>
+                    <div class="store-item">
+                        <h3>1,000 Premium Crystals</h3>
+                        <p>Instantly fund heavy starship hulls.</p>
+                        <div id="paypal-button-pack-1"></div>
+                    </div>
+                    <div class="store-item" style="border-left-color: #ff00ff;">
+                        <h3>Support the Creator ($5)</h3>
+                        <p>Maintains processing systems.</p>
+                        <div id="paypal-button-donate"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Grid Segment: 10-Tier Hull Fleet Selection Matrix -->
+            <div class="panel garage-panel">
+                <h2>FLEET SHIP HANGAR (10 CORVETTES AVAILABLE)</h2>
+                <div class="skin-grid" id="skins-container">
+                    <!-- Populated dynamically through operational engine array mapping -->
                 </div>
             </div>
         </div>
 
+        <button class="play-btn" onclick="startGame()">LAUNCH ENGINE</button>
+    </div>
+
+    <!-- MAIN HUD REGION -->
+    <div id="game-ui">
+        <div class="hud">
+            <h1>COSMIC CARGO</h1>
+            <div>Distance: <span id="scoreVal">0</span>m</div>
+            <div>Run Cargo: <span id="gemsVal">0</span> Gems</div>
+        </div>
         <div id="mobile-touch-zones">
             <div class="touch-btn" id="left-touch"></div>
             <div class="touch-btn" id="right-touch"></div>
@@ -67,47 +136,202 @@
     </div>
 
     <script>
-        // Game State Variables
-        let scene, camera, renderer, playerShip, clock;
+        // =========================================================================
+        // ENGINE MANAGEMENT CORE REGISTRIES
+        // =========================================================================
+        let gameState = 'MENU';
+        let clock, scene, camera, renderer, playerShip;
         let obstacles = [], gems = [];
-        let playerX = 0, targetX = 0, currentScore = 0, currentGems = 0;
+        let playerX = 0, targetX = 0, currentScore = 0, currentRunGems = 0;
         const trackBoundsX = 5.5;
 
-        // FIX: Memory Leak Prevention - Pre-allocate materials
+        // Permanent Cache Synchronizer
+        let savedGems = parseInt(localStorage.getItem('CosmicGems') || '0');
+        let savedCrystals = parseInt(localStorage.getItem('CosmicCrystals') || '0');
+        let ownedSkins = JSON.parse(localStorage.getItem('CosmicSkins') || '["default"]');
+        let currentSkinId = localStorage.getItem('CosmicEquippedSkin') || 'default';
+
+        let hasInitializedStore = false;
         let sharedGemGeo, sharedGemMat, sharedObsGeo, sharedObsMat;
 
+        // Complete 10-Skin Database Model Architecture
+        const skinDatabase = [
+            { id: 'default',   name: 'Dart Mark I',      cost: 0,    type: 'free',     style: 'cone' },
+            { id: 'scout',     name: 'Vanguard Scout',   cost: 15,   type: 'gems',     style: 'box' },
+            { id: 'inter',     name: 'Helix Fighter',    cost: 40,   type: 'gems',     style: 'cylinder' },
+            { id: 'cruiser',   name: 'Heavy Hauler',     cost: 75,   type: 'gems',     style: 'torus' },
+            { id: 'wraith',    name: 'Phantom Wraith',   cost: 120,  type: 'gems',     style: 'knot' },
+            { id: 'quantum',   name: 'Quantum Prism',    cost: 200,  type: 'gems',     style: 'sphere' },
+            { id: 'titan',     name: 'Titan Dreadnought',cost: 350,  type: 'gems',     style: 'capsule' },
+            { id: 'aurora',    name: 'Neon Aurora Pack', cost: 500,  type: 'crystals', style: 'cone_wide' },
+            { id: 'nebula',    name: 'Nebula Overlord',  cost: 1200, type: 'crystals', style: 'torus_thick' },
+            { id: 'void',      name: 'Void Singularity', cost: 2500, type: 'crystals', style: 'knot_dense' }
+        ];
+
         window.onload = function() {
+            syncLocalStorageMatrix();
+            renderHangarInterface();
             attemptPayPalInit(0);
             initialize3DSpaceEngine();
         };
 
-        // FIX: Network Race Condition - Polling mechanism for PayPal SDK
+        // =========================================================================
+        // ACCOUNT SECURITY ENGINE PIPELINES
+        // =========================================================================
+        function syncLocalStorageMatrix() {
+            document.getElementById('menu-gems-val').innerText = savedGems;
+            document.getElementById('menu-crystals-val').innerText = savedCrystals;
+            localStorage.setItem('CosmicGems', savedGems);
+            localStorage.setItem('CosmicCrystals', savedCrystals);
+            localStorage.setItem('CosmicSkins', JSON.stringify(ownedSkins));
+            localStorage.setItem('CosmicEquippedSkin', currentSkinId);
+        }
+
+        function renderHangarInterface() {
+            const container = document.getElementById('skins-container');
+            container.innerHTML = '';
+            
+            skinDatabase.forEach(skin => {
+                const card = document.createElement('div');
+                card.className = `skin-card ${currentSkinId === skin.id ? 'active-border' : ''}`;
+                
+                let activeActionBtn = '';
+                if (ownedSkins.includes(skin.id)) {
+                    if (currentSkinId === skin.id) {
+                        activeActionBtn = `<button class="equipped">ACTIVE</button>`;
+                    } else {
+                        activeActionBtn = `<button class="equip" onclick="equipFleetHull('${skin.id}')">EQUIP</button>`;
+                    }
+                } else {
+                    if (skin.type === 'gems') {
+                        activeActionBtn = `<button class="buy-gems" onclick="purchaseFleetHull('${skin.id}', ${skin.cost}, 'gems')">${skin.cost} Gems</button>`;
+                    } else if (skin.type === 'crystals') {
+                        activeActionBtn = `<button class="buy-crystals" onclick="purchaseFleetHull('${skin.id}', ${skin.cost}, 'crystals')">${skin.cost} Cry.</button>`;
+                    }
+                }
+
+                card.innerHTML = `<div class="skin-name">${skin.name}</div> ${activeActionBtn}`;
+                container.appendChild(card);
+            });
+        }
+
+        function equipFleetHull(id) {
+            currentSkinId = id;
+            if(playerShip) {
+                const meshConfig = dynamicallyGenerateGeometryProfile(id);
+                playerShip.geometry = meshConfig.geo;
+                playerShip.material = meshConfig.mat;
+            }
+            syncLocalStorageMatrix();
+            renderHangarInterface();
+        }
+
+        function purchaseFleetHull(id, cost, currencyToken) {
+            if (currencyToken === 'gems' && savedGems >= cost) {
+                savedGems -= cost;
+                ownedSkins.push(id);
+                equipFleetHull(id);
+            } else if (currencyToken === 'crystals' && savedCrystals >= cost) {
+                savedCrystals -= cost;
+                ownedSkins.push(id);
+                equipFleetHull(id);
+            } else {
+                alert(`Insufficient funds. Acquire more ${currencyToken} to authorization clean clearance.`);
+            }
+        }
+
         function attemptPayPalInit(retries) {
+            if (hasInitializedStore) return;
             if (typeof paypal !== 'undefined') {
                 bindPayPalButtons();
+                hasInitializedStore = true;
             } else if (retries < 10) {
                 setTimeout(() => attemptPayPalInit(retries + 1), 500);
-            } else {
-                console.error("PayPal failed to load after 5 seconds. Check network.");
             }
         }
 
         function bindPayPalButtons() {
             paypal.Buttons({
                 createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: '1.99' } }] }),
-                onApprove: (data, actions) => actions.order.capture().then(() => alert('1,000 Crystals added!'))
+                onApprove: (data, actions) => actions.order.capture().then(() => {
+                    savedCrystals += 1000;
+                    syncLocalStorageMatrix();
+                    renderHangarInterface();
+                    alert('1,000 Premium Crystals Securely Deposited!');
+                })
             }).render('#paypal-button-pack-1');
 
             paypal.Buttons({
                 style: { color: 'blue', shape: 'rect', label: 'pay' },
                 createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: '5.00' } }] }),
-                onApprove: (data, actions) => actions.order.capture().then(() => alert('Thank you for your support!'))
+                onApprove: (data, actions) => actions.order.capture().then(() => alert('Your transaction processed cleanly. Dev systems supported!'))
             }).render('#paypal-button-donate');
+        }
+
+        // =========================================================================
+        // GRAPHICS MATRIX TRANSFORMS
+        // =========================================================================
+        function dynamicallyGenerateGeometryProfile(id) {
+            const targetData = skinDatabase.find(x => x.id === id) || skinDatabase[0];
+            let geo, mat;
+
+            // Compute math shapes lazily to maximize initialization performance frames
+            switch(targetData.style) {
+                case 'box':          geo = new THREE.BoxGeometry(0.9, 0.4, 1.8); break;
+                case 'cylinder':     geo = new THREE.CylinderGeometry(0.4, 0.4, 2, 8); geo.rotateX(Math.PI/2); break;
+                case 'torus':        geo = new THREE.TorusGeometry(0.5, 0.15, 8, 24); break;
+                case 'knot':         geo = new THREE.TorusKnotGeometry(0.3, 0.1, 40, 8); break;
+                case 'sphere':       geo = new THREE.SphereGeometry(0.6, 12, 12); break;
+                case 'capsule':      geo = new THREE.CapsuleGeometry(0.4, 1.2, 4, 8); geo.rotateX(Math.PI/2); break;
+                case 'cone_wide':    geo = new THREE.ConeGeometry(0.9, 2, 6); geo.rotateX(Math.PI/2); break;
+                case 'torus_thick':  geo = new THREE.TorusGeometry(0.5, 0.25, 8, 16); break;
+                case 'knot_dense':   geo = new THREE.TorusKnotGeometry(0.3, 0.12, 60, 4, 3, 5); break;
+                default:             geo = new THREE.ConeGeometry(0.5, 2.2, 5); geo.rotateX(Math.PI / 2); break;
+            }
+
+            // High-fidelity skin material allocation
+            if (targetData.type === 'crystals') {
+                mat = new THREE.MeshStandardMaterial({ color: id==='aurora'? 0x00ffff : id==='nebula'? 0xff00ff : 0xffd700, metalness: 0.9, roughness: 0.1, wireframe: id==='void' });
+            } else {
+                mat = new THREE.MeshPhongMaterial({ color: id==='scout'? 0x00ff00 : id==='inter'? 0xffa500 : id==='cruiser'? 0x4169e1 : id==='wraith'? 0x4b0082 : id==='titan'? 0x8b0000 : 0x00ffcc, flatShading: true });
+            }
+
+            return { geo, mat };
+        }
+
+        // =========================================================================
+        // ENGINE RUNTIME CONTROL SYSTEMS
+        // =========================================================================
+        function startGame() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('game-ui').style.display = 'flex';
+            
+            currentScore = 0; currentRunGems = 0; playerX = 0; targetX = 0;
+            playerShip.position.x = 0;
+            document.getElementById('scoreVal').innerText = '0';
+            document.getElementById('gemsVal').innerText = '0';
+            
+            obstacles.forEach(obs => scene.remove(obs));
+            gems.forEach(gem => scene.remove(gem));
+            obstacles = []; gems = [];
+
+            gameState = 'PLAYING';
+        }
+
+        function gameOver() {
+            gameState = 'MENU';
+            savedGems += currentRunGems;
+            syncLocalStorageMatrix();
+            renderHangarInterface();
+            
+            document.getElementById('game-ui').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'flex';
         }
 
         function initialize3DSpaceEngine() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x020208, 0.012);
+            scene.fog = new THREE.FogExp2(0x010103, 0.016);
+            clock = new THREE.Clock();
 
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
             camera.position.set(0, 3.5, -7.5);
@@ -116,44 +340,36 @@
             renderer.setSize(window.innerWidth, window.innerHeight);
             renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            // FIX: Initialize the Game Clock for Framerate Independence
-            clock = new THREE.Clock();
-
-            // Lighting
-            scene.add(new THREE.AmbientLight(0x444466));
-            const keyLight = new THREE.DirectionalLight(0x00ffcc, 1.2);
-            keyLight.position.set(5, 15, -10);
-            scene.add(keyLight);
-
-            // Ship
-            const shipGeometry = new THREE.ConeGeometry(0.5, 2.2, 5);
-            shipGeometry.rotateX(Math.PI / 2);
-            playerShip = new THREE.Mesh(shipGeometry, new THREE.MeshPhongMaterial({ color: 0x00ffcc }));
+            // Generate initial selected shell mesh profile configurations
+            const initShell = dynamicallyGenerateGeometryProfile(currentSkinId);
+            playerShip = new THREE.Mesh(initShell.geo, initShell.mat);
             scene.add(playerShip);
 
-            // Setup Shared Materials for spawns
-            sharedGemGeo = new THREE.DodecahedronGeometry(0.35);
+            sharedGemGeo = new THREE.DodecahedronGeometry(0.32);
             sharedGemMat = new THREE.MeshPhongMaterial({ color: 0xff00ff, flatShading: true });
-            sharedObsGeo = new THREE.SphereGeometry(0.6, 8, 8);
-            sharedObsMat = new THREE.MeshPhongMaterial({ color: 0x555566, flatShading: true });
+            sharedObsGeo = new THREE.SphereGeometry(0.55, 8, 8);
+            sharedObsMat = new THREE.MeshPhongMaterial({ color: 0x444455, flatShading: true });
 
-            // Starfield
-            const totalStars = 1000;
-            const matrixPositions = new Float32Array(totalStars * 3);
-            for(let i = 0; i < totalStars * 3; i += 3) {
-                matrixPositions[i] = (Math.random() - 0.5) * 150;
-                matrixPositions[i+1] = (Math.random() - 0.5) * 150;
-                matrixPositions[i+2] = Math.random() * 400;
+            scene.add(new THREE.AmbientLight(0x555566));
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(5, 15, -10);
+            scene.add(light);
+
+            const starGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(900 * 3);
+            for(let i=0; i<2700; i+=3) {
+                positions[i] = (Math.random() - 0.5) * 160;
+                positions[i+1] = (Math.random() - 0.5) * 160;
+                positions[i+2] = Math.random() * 400;
             }
-            const starMatrixGeometry = new THREE.BufferGeometry();
-            starMatrixGeometry.setAttribute('position', new THREE.BufferAttribute(matrixPositions, 3));
-            scene.add(new THREE.Points(starMatrixGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 })));
+            starGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.35 })));
 
             window.addEventListener('resize', () => {
                 camera.aspect = window.innerWidth / window.innerHeight;
                 camera.updateProjectionMatrix();
                 renderer.setSize(window.innerWidth, window.innerHeight);
-            }, false);
+            });
 
             bindHardwareInputRouters();
             executeMainSimulationLoop();
@@ -161,62 +377,59 @@
 
         function bindHardwareInputRouters() {
             window.addEventListener('keydown', (e) => {
+                if (gameState !== 'PLAYING') return;
                 if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') targetX = trackBoundsX;
                 if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') targetX = -trackBoundsX;
             });
             window.addEventListener('keyup', () => targetX = 0);
 
-            document.getElementById('left-touch').addEventListener('touchstart', (e) => { e.preventDefault(); targetX = trackBoundsX; }, {passive: false});
-            document.getElementById('right-touch').addEventListener('touchstart', (e) => { e.preventDefault(); targetX = -trackBoundsX; }, {passive: false});
-            document.getElementById('left-touch').addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
-            document.getElementById('right-touch').addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
-        }
+            const leftZ = document.getElementById('left-touch');
+            const rightZ = document.getElementById('right-touch');
 
-        function processProceduralSpawns(delta) {
-            // Adjust spawn rate based on delta time to keep density consistent across refresh rates
-            if (Math.random() < (3.5 * delta)) { 
-                const isGemItem = Math.random() < 0.25;
-                const deployedMesh = isGemItem ? new THREE.Mesh(sharedGemGeo, sharedGemMat) : new THREE.Mesh(sharedObsGeo, sharedObsMat);
-                
-                // Scale random obstacle sizes safely
-                if (!isGemItem) {
-                    const scale = Math.random() * 0.5 + 0.8;
-                    deployedMesh.scale.set(scale, scale, scale);
-                }
-
-                deployedMesh.position.set((Math.random() - 0.5) * 14, 0, 160);
-                scene.add(deployedMesh);
-                
-                if (isGemItem) gems.push(deployedMesh);
-                else obstacles.push(deployedMesh);
-            }
+            leftZ.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'PLAYING') targetX = trackBoundsX; }, {passive: false});
+            rightZ.addEventListener('touchstart', (e) => { e.preventDefault(); if(gameState === 'PLAYING') targetX = -trackBoundsX; }, {passive: false});
+            leftZ.addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
+            rightZ.addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
         }
 
         function executeMainSimulationLoop() {
             requestAnimationFrame(executeMainSimulationLoop);
-            
-            // FIX: Fetch Delta Time
             const delta = clock.getDelta();
-            const moveSpeed = 85 * delta; // Normalize speed
 
+            if (gameState === 'MENU') {
+                camera.position.x = Math.sin(Date.now() * 0.0004) * 1.5;
+                playerShip.rotation.y += 0.5 * delta;
+                renderer.render(scene, camera);
+                return;
+            }
+
+            const moveSpeed = 95 * delta;
             playerX = THREE.MathUtils.lerp(playerX, targetX, 5 * delta);
             playerShip.position.x = playerX;
-            playerShip.rotation.z = (playerX - targetX) * 0.12; 
+            playerShip.rotation.z = (playerX - targetX) * 0.12;
+            playerShip.rotation.y = 0; // Lock structural axis rigid in game session loops
 
-            processProceduralSpawns(delta);
-
-            if (targetX !== 0 || currentScore > 0) {
-                currentScore += Math.floor(10 * delta);
-                document.getElementById('scoreVal').innerText = currentScore;
+            if (Math.random() < (3.6 * delta)) { 
+                const isGem = Math.random() < 0.24;
+                const mesh = isGem ? new THREE.Mesh(sharedGemGeo, sharedGemMat) : new THREE.Mesh(sharedObsGeo, sharedObsMat);
+                if (!isGem) {
+                    const scale = Math.random() * 0.5 + 0.8;
+                    mesh.scale.set(scale, scale, scale);
+                }
+                mesh.position.set((Math.random() - 0.5) * 13.5, 0, 160);
+                scene.add(mesh);
+                if (isGem) gems.push(mesh); else obstacles.push(mesh);
             }
+
+            currentScore += Math.floor(12 * delta);
+            document.getElementById('scoreVal').innerText = currentScore;
 
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 obstacles[i].position.z -= moveSpeed; 
-                
                 if (obstacles[i].position.z < 0.8 && obstacles[i].position.z > -0.8 && Math.abs(obstacles[i].position.x - playerShip.position.x) < 0.95) {
-                    currentScore = 0; 
+                    gameOver();
+                    return;
                 }
-
                 if (obstacles[i].position.z < -12) {
                     scene.remove(obstacles[i]);
                     obstacles.splice(i, 1);
@@ -225,22 +438,21 @@
 
             for (let i = gems.length - 1; i >= 0; i--) {
                 gems[i].position.z -= moveSpeed;
-                gems[i].rotation.y += 2 * delta;
-
+                gems[i].rotation.y += 2.5 * delta;
                 if (gems[i].position.z < 0.8 && gems[i].position.z > -0.8 && Math.abs(gems[i].position.x - playerShip.position.x) < 0.95) {
-                    currentGems++;
-                    document.getElementById('gemsVal').innerText = currentGems;
+                    currentRunGems++;
+                    document.getElementById('gemsVal').innerText = currentRunGems;
                     scene.remove(gems[i]);
                     gems.splice(i, 1);
                     continue;
                 }
-
                 if (gems[i].position.z < -12) {
                     scene.remove(gems[i]);
                     gems.splice(i, 1);
                 }
             }
 
+            camera.position.x = 0;
             camera.lookAt(new THREE.Vector3(playerShip.position.x * 0.35, 0, playerShip.position.z + 12));
             renderer.render(scene, camera);
         }
