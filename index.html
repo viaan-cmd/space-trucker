@@ -2,78 +2,64 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Cosmic Cargo: Space Trucker</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body, html { width: 100%; height: 100%; overflow: hidden; background: #000; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: white; }
         
-        /* 3D Viewport */
         #gameCanvas { display: block; width: 100vw; height: 100vh; }
 
-        /* UI Overlay */
-        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
+        #ui-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; z-index: 10; }
         .interactive { pointer-events: auto; }
 
-        .hud { background: rgba(0, 0, 0, 0.6); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; backdrop-filter: blur(5px); }
+        .hud { background: rgba(0, 0, 0, 0.7); padding: 15px; border-radius: 10px; border: 1px solid #00ffcc; backdrop-filter: blur(5px); width: fit-content; }
         .hud h1 { font-size: 24px; color: #00ffcc; text-shadow: 0 0 10px #00ffcc; margin-bottom: 5px; }
         
-        /* Shop & Donation Panel */
-        #monetization-panel { position: absolute; right: 20px; top: 20px; width: 300px; max-height: 90vh; overflow-y: auto; }
-        .shop-box { background: rgba(20, 20, 30, 0.85); border: 2px solid #ff00ff; border-radius: 12px; padding: 20px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
-        .shop-box h2 { color: #ff00ff; text-align: center; margin-bottom: 15px; font-size: 20px; }
+        #monetization-panel { position: absolute; right: 20px; top: 20px; width: 300px; max-height: 90vh; overflow-y: auto; z-index: 20; } /* FIX: Elevated z-index */
+        .shop-box { background: rgba(20, 20, 30, 0.9); border: 2px solid #ff00ff; border-radius: 12px; padding: 20px; box-shadow: 0 0 15px rgba(255, 0, 255, 0.4); }
+        .shop-box h2 { color: #ff00ff; text-align: center; margin-bottom: 15px; font-size: 20px; letter-spacing: 1px; }
         .product-card { background: rgba(255, 255, 255, 0.05); border-radius: 8px; padding: 12px; margin-bottom: 15px; border: 1px solid rgba(255,255,255,0.1); }
-        .product-card h3 { font-size: 16px; margin-bottom: 5px; }
-        .product-card p { font-size: 12px; color: #aaa; margin-bottom: 10px; }
+        .product-card h3 { font-size: 16px; margin-bottom: 5px; color: #fff; }
+        .product-card p { font-size: 12px; color: #b3b3b3; margin-bottom: 12px; line-height: 1.4; }
 
-        /* Mobile Controls Overlay */
-        #mobile-touch-zones { position: absolute; bottom: 0; left: 0; width: 100%; height: 50%; display: flex; pointer-events: auto; }
-        .touch-btn { flex: 1; height: 100%; opacity: 0.1; transition: opacity 0.2s; }
-        .touch-btn:active { opacity: 0.3; background: white; }
+        #mobile-touch-zones { position: absolute; bottom: 0; left: 0; width: 100%; height: 60%; display: flex; pointer-events: auto; z-index: 5; touch-action: none; }
+        .touch-btn { flex: 1; height: 100%; opacity: 0; -webkit-tap-highlight-color: transparent; }
 
-        /* Custom Scrollbar for Shop */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-thumb { background: #ff00ff; border-radius: 10px; }
     </style>
 
-    <!-- Load Three.js for 3D Graphics and PayPal SDK for Monetization -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script> <!-- Swap 'sb' with your live PayPal client ID later -->
+    <script src="https://www.paypal.com/sdk/js?client-id=sb&currency=USD"></script>
 </head>
 <body>
 
     <canvas id="gameCanvas"></canvas>
 
     <div id="ui-layer">
-        <!-- Top Left: Core Stats -->
         <div class="hud">
             <h1>COSMIC CARGO</h1>
-            <div>Score: <span id="scoreVal">0</span>m</div>
-            <div>Cargo Holds: <span id="gemsVal">0</span> Gems</div>
+            <div>Distance: <span id="scoreVal">0</span>m</div>
+            <div>Cargo Payload: <span id="gemsVal">0</span> Gems</div>
         </div>
 
-        <!-- Right Side: The Money System (Shop & Donations) -->
         <div id="monetization-panel" class="interactive">
             <div class="shop-box">
-                <h2>SHIP UPGRADES & SUPPORT</h2>
-                
-                <!-- Microtransaction 1: Premium Currency Pack -->
+                <h2>BLACK MARKET</h2>
                 <div class="product-card">
-                    <h3>1,000 Space Crystals</h3>
-                    <p>Unlock premium heavy cargo ships instantly.</p>
+                    <h3>1,000 Premium Crystals</h3>
+                    <p>Unlock custom hulls instantly.</p>
                     <div id="paypal-button-pack-1"></div>
                 </div>
-
-                <!-- Monetization Rule: The Donation Portal -->
                 <div class="product-card">
-                    <h3>Support the Dev! (Donate $5)</h3>
-                    <p>Keep our deep-space servers running clean.</p>
+                    <h3>Support the Creator ($5)</h3>
+                    <p>Help fund deeper sector development.</p>
                     <div id="paypal-button-donate"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Invisible Overlay to handle Mobile Split-Screen steering -->
         <div id="mobile-touch-zones">
             <div class="touch-btn" id="left-touch"></div>
             <div class="touch-btn" id="right-touch"></div>
@@ -81,171 +67,167 @@
     </div>
 
     <script>
-        // =========================================================================
-        // 1. MONETIZATION INTELLIGENCE (PAYPAL PAYMENT ROUTING)
-        // =========================================================================
-        
-        // Premium Currency Checkout Engine
-        paypal.Buttons({
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        description: "1,000 Space Crystals - Cosmic Cargo",
-                        amount: { value: '1.99' }
-                    }]
-                });
-            },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    alert('Transaction Completed! Thank you ' + details.payer.name.given_name + '. 1,000 Crystals added!');
-                    // Local state integration (e.g. increase player gold count persistently)
-                    localStorage.setItem('PremiumGems', parseInt(localStorage.getItem('PremiumGems') || 0) + 1000);
-                });
-            }
-        }).render('#paypal-button-pack-1');
-
-        // Donation Portal Hook
-        paypal.Buttons({
-            style: { color: 'blue', shape: 'rect', label: 'buynow' },
-            createOrder: function(data, actions) {
-                return actions.order.create({
-                    purchase_units: [{
-                        description: "Developer Donation Support - Cosmic Cargo",
-                        amount: { value: '5.00' }
-                    }]
-                });
-            },
-            onApprove: function(data, actions) {
-                return actions.order.capture().then(function(details) {
-                    alert('Awesome! Thank you for the donation support, ' + details.payer.name.given_name + '!');
-                });
-            }
-        }).render('#paypal-button-donate');
-
-
-        // =========================================================================
-        // 2. 3D VIDEO GAME GRAPHICS ENGINE (THREE.JS ENVIRONMENT)
-        // =========================================================================
-        let scene, camera, renderer, playerShip;
+        // Game State Variables
+        let scene, camera, renderer, playerShip, clock;
         let obstacles = [], gems = [];
         let playerX = 0, targetX = 0, currentScore = 0, currentGems = 0;
+        const trackBoundsX = 5.5;
 
-        function init3D() {
-            // Setup scene container
+        // FIX: Memory Leak Prevention - Pre-allocate materials
+        let sharedGemGeo, sharedGemMat, sharedObsGeo, sharedObsMat;
+
+        window.onload = function() {
+            attemptPayPalInit(0);
+            initialize3DSpaceEngine();
+        };
+
+        // FIX: Network Race Condition - Polling mechanism for PayPal SDK
+        function attemptPayPalInit(retries) {
+            if (typeof paypal !== 'undefined') {
+                bindPayPalButtons();
+            } else if (retries < 10) {
+                setTimeout(() => attemptPayPalInit(retries + 1), 500);
+            } else {
+                console.error("PayPal failed to load after 5 seconds. Check network.");
+            }
+        }
+
+        function bindPayPalButtons() {
+            paypal.Buttons({
+                createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: '1.99' } }] }),
+                onApprove: (data, actions) => actions.order.capture().then(() => alert('1,000 Crystals added!'))
+            }).render('#paypal-button-pack-1');
+
+            paypal.Buttons({
+                style: { color: 'blue', shape: 'rect', label: 'pay' },
+                createOrder: (data, actions) => actions.order.create({ purchase_units: [{ amount: { value: '5.00' } }] }),
+                onApprove: (data, actions) => actions.order.capture().then(() => alert('Thank you for your support!'))
+            }).render('#paypal-button-donate');
+        }
+
+        function initialize3DSpaceEngine() {
             scene = new THREE.Scene();
-            scene.fog = new THREE.FogExp2(0x000000, 0.015);
+            scene.fog = new THREE.FogExp2(0x020208, 0.012);
 
-            // Setup display framing perspective
             camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
-            camera.position.set(0, 4, -8); // Look from behind/above ship
+            camera.position.set(0, 3.5, -7.5);
 
             renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-            // Ambient lighting systems
-            const ambientLight = new THREE.AmbientLight(0x333333);
-            scene.add(ambientLight);
-            const directionalLight = new THREE.DirectionalLight(0x00ffcc, 1);
-            directionalLight.position.set(0, 10, -10);
-            scene.add(directionalLight);
+            // FIX: Initialize the Game Clock for Framerate Independence
+            clock = new THREE.Clock();
 
-            // Construct 3D Player Ship Model (A stylized geometric cargo cruiser)
-            const geometry = new THREE.ConeGeometry(0.6, 2, 4);
-            geometry.rotateX(Math.PI / 2); // Face forward along deep Z axis
-            const material = new THREE.MeshPhongMaterial({ color: 0x00ffcc, wireframe: false });
-            playerShip = new THREE.Mesh(geometry, material);
+            // Lighting
+            scene.add(new THREE.AmbientLight(0x444466));
+            const keyLight = new THREE.DirectionalLight(0x00ffcc, 1.2);
+            keyLight.position.set(5, 15, -10);
+            scene.add(keyLight);
+
+            // Ship
+            const shipGeometry = new THREE.ConeGeometry(0.5, 2.2, 5);
+            shipGeometry.rotateX(Math.PI / 2);
+            playerShip = new THREE.Mesh(shipGeometry, new THREE.MeshPhongMaterial({ color: 0x00ffcc }));
             scene.add(playerShip);
 
-            // Procedural Infinite Starfield generation
-            const starsGeo = new THREE.BufferGeometry();
-            const starsCount = 800;
-            const starPositions = new Float32Array(starsCount * 3);
-            for(let i=0; i < starsCount*3; i+=3) {
-                starPositions[i] = (Math.random() - 0.5) * 100;
-                starPositions[i+1] = (Math.random() - 0.5) * 100;
-                starPositions[i+2] = Math.random() * 500;
-            }
-            starsGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-            const starsMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
-            const starfield = new THREE.Points(starsGeo, starsMat);
-            scene.add(starfield);
+            // Setup Shared Materials for spawns
+            sharedGemGeo = new THREE.DodecahedronGeometry(0.35);
+            sharedGemMat = new THREE.MeshPhongMaterial({ color: 0xff00ff, flatShading: true });
+            sharedObsGeo = new THREE.SphereGeometry(0.6, 8, 8);
+            sharedObsMat = new THREE.MeshPhongMaterial({ color: 0x555566, flatShading: true });
 
-            window.addEventListener('resize', onWindowResize, false);
-            setupInputControls();
-            animateLoop();
+            // Starfield
+            const totalStars = 1000;
+            const matrixPositions = new Float32Array(totalStars * 3);
+            for(let i = 0; i < totalStars * 3; i += 3) {
+                matrixPositions[i] = (Math.random() - 0.5) * 150;
+                matrixPositions[i+1] = (Math.random() - 0.5) * 150;
+                matrixPositions[i+2] = Math.random() * 400;
+            }
+            const starMatrixGeometry = new THREE.BufferGeometry();
+            starMatrixGeometry.setAttribute('position', new THREE.BufferAttribute(matrixPositions, 3));
+            scene.add(new THREE.Points(starMatrixGeometry, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4 })));
+
+            window.addEventListener('resize', () => {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+            }, false);
+
+            bindHardwareInputRouters();
+            executeMainSimulationLoop();
         }
 
-        // =========================================================================
-        // 3. INPUT SYSTEMS (DUAL PC KEYBOARD AND TABLET GLASS INPUTS)
-        // =========================================================================
-        function setupInputControls() {
-            // PC Layout Tracker
+        function bindHardwareInputRouters() {
             window.addEventListener('keydown', (e) => {
-                if(e.key === 'ArrowLeft' || e.key === 'a') targetX = 3.5;
-                if(e.key === 'ArrowRight' || e.key === 'd') targetX = -3.5;
+                if(e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') targetX = trackBoundsX;
+                if(e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') targetX = -trackBoundsX;
             });
             window.addEventListener('keyup', () => targetX = 0);
 
-            // Mobile/Tablet Interactive Matrix Layout
-            document.getElementById('left-touch').addEventListener('touchstart', () => targetX = 3.5);
-            document.getElementById('right-touch').addEventListener('touchstart', () => targetX = -3.5);
-            document.getElementById('left-touch').addEventListener('touchend', () => targetX = 0);
-            document.getElementById('right-touch').addEventListener('touchend', () => targetX = 0);
+            document.getElementById('left-touch').addEventListener('touchstart', (e) => { e.preventDefault(); targetX = trackBoundsX; }, {passive: false});
+            document.getElementById('right-touch').addEventListener('touchstart', (e) => { e.preventDefault(); targetX = -trackBoundsX; }, {passive: false});
+            document.getElementById('left-touch').addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
+            document.getElementById('right-touch').addEventListener('touchend', (e) => { e.preventDefault(); targetX = 0; }, {passive: false});
         }
 
-        // =========================================================================
-        // 4. GAME MECHANICS FRAMEWORK & SIMULATION LOOPS
-        // =========================================================================
-        function spawnElements() {
-            if (Math.random() < 0.05) { // 5% frame density drop rate index
-                const isGem = Math.random() < 0.3;
-                const geo = isGem ? new THREE.DodecahedronGeometry(0.3) : new THREE.SphereGeometry(Math.random() * 0.6 + 0.3, 8, 8);
-                const mat = new THREE.MeshPhongMaterial({ color: isGem ? 0xff00ff : 0x666666 });
-                const mesh = new THREE.Mesh(geo, mat);
+        function processProceduralSpawns(delta) {
+            // Adjust spawn rate based on delta time to keep density consistent across refresh rates
+            if (Math.random() < (3.5 * delta)) { 
+                const isGemItem = Math.random() < 0.25;
+                const deployedMesh = isGemItem ? new THREE.Mesh(sharedGemGeo, sharedGemMat) : new THREE.Mesh(sharedObsGeo, sharedObsMat);
                 
-                mesh.position.set((Math.random() - 0.5) * 12, 0, 150); // Frame deep out in distance
-                scene.add(mesh);
+                // Scale random obstacle sizes safely
+                if (!isGemItem) {
+                    const scale = Math.random() * 0.5 + 0.8;
+                    deployedMesh.scale.set(scale, scale, scale);
+                }
+
+                deployedMesh.position.set((Math.random() - 0.5) * 14, 0, 160);
+                scene.add(deployedMesh);
                 
-                if (isGem) gems.push(mesh);
-                else obstacles.push(mesh);
+                if (isGemItem) gems.push(deployedMesh);
+                else obstacles.push(deployedMesh);
             }
         }
 
-        function animateLoop() {
-            requestAnimationFrame(animateLoop);
+        function executeMainSimulationLoop() {
+            requestAnimationFrame(executeMainSimulationLoop);
+            
+            // FIX: Fetch Delta Time
+            const delta = clock.getDelta();
+            const moveSpeed = 85 * delta; // Normalize speed
 
-            // Smoothly steer ship to lane target positions
-            playerX = THREE.MathUtils.lerp(playerX, targetX, 0.1);
+            playerX = THREE.MathUtils.lerp(playerX, targetX, 5 * delta);
             playerShip.position.x = playerX;
-            playerShip.rotation.z = (playerX - targetX) * 0.15; // Lean visual polish
+            playerShip.rotation.z = (playerX - targetX) * 0.12; 
 
-            spawnElements();
+            processProceduralSpawns(delta);
 
-            // Simulate score tracking updates
-            currentScore++;
-            document.getElementById('scoreVal').innerText = currentScore;
+            if (targetX !== 0 || currentScore > 0) {
+                currentScore += Math.floor(10 * delta);
+                document.getElementById('scoreVal').innerText = currentScore;
+            }
 
-            // Process Asteroids Engine Loops
             for (let i = obstacles.length - 1; i >= 0; i--) {
-                obstacles[i].position.z -= 1.2; // Velocity offset parameter
+                obstacles[i].position.z -= moveSpeed; 
                 
-                // Real-time bounding collision checks
-                if (obstacles[i].position.z < 1 && obstacles[i].position.z > -1 && Math.abs(obstacles[i].position.x - playerShip.position.x) < 1.0) {
-                    currentScore = 0; // Quick collision penalty reset out of sample template layout
+                if (obstacles[i].position.z < 0.8 && obstacles[i].position.z > -0.8 && Math.abs(obstacles[i].position.x - playerShip.position.x) < 0.95) {
+                    currentScore = 0; 
                 }
 
-                if (obstacles[i].position.z < -10) {
+                if (obstacles[i].position.z < -12) {
                     scene.remove(obstacles[i]);
                     obstacles.splice(i, 1);
                 }
             }
 
-            // Process Gems Loop
             for (let i = gems.length - 1; i >= 0; i--) {
-                gems[i].position.z -= 1.2;
-                gems[i].rotation.y += 0.05;
+                gems[i].position.z -= moveSpeed;
+                gems[i].rotation.y += 2 * delta;
 
-                if (gems[i].position.z < 1 && gems[i].position.z > -1 && Math.abs(gems[i].position.x - playerShip.position.x) < 1.0) {
+                if (gems[i].position.z < 0.8 && gems[i].position.z > -0.8 && Math.abs(gems[i].position.x - playerShip.position.x) < 0.95) {
                     currentGems++;
                     document.getElementById('gemsVal').innerText = currentGems;
                     scene.remove(gems[i]);
@@ -253,26 +235,15 @@
                     continue;
                 }
 
-                if (gems[i].position.z < -10) {
+                if (gems[i].position.z < -12) {
                     scene.remove(gems[i]);
                     gems.splice(i, 1);
                 }
             }
 
-            // Make the camera trace behind player motions smoothly
-            camera.lookAt(new THREE.Vector3(playerShip.position.x * 0.4, 0, playerShip.position.z + 10));
-
+            camera.lookAt(new THREE.Vector3(playerShip.position.x * 0.35, 0, playerShip.position.z + 12));
             renderer.render(scene, camera);
         }
-
-        function onWindowResize() {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        }
-
-        // Initialize engine framework on boot
-        init3D();
     </script>
 </body>
 </html>
